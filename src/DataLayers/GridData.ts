@@ -39,10 +39,6 @@ export function parseData(input: string): Promise<GridData> {
       for (const record of records) {
         const [key, value] = record;
 
-        if (values.length == 0) {
-          console.log(key, value);
-        }
-
         if (key == 'METADATA') {
           section = value == 'TRUE'
             ? GridDataSection.Metadata

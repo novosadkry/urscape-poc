@@ -14,13 +14,14 @@ export default function Map() {
   const [map, setMap] = useState<maplibre.Map | null>(null)
   const [gridData, setGridData] = useState<GridData | null>(null);
 
+  // Setup Maplibre
   useEffect(() => {
     const newMap = new maplibre.Map({
       container: mapRef.current as HTMLElement,
       // projection: 'globe',
       style: mapStyle,
-      center: [0, 0],
-      zoom: 0,
+      center: [107.641, -6.866],
+      zoom: 13,
       antialias: true
     });
 
@@ -32,6 +33,7 @@ export default function Map() {
     }
   }, []);
 
+  // Load grid data
   useEffect(() => {
     async function parseGrid() {
       // Initialize custom layer
@@ -41,17 +43,25 @@ export default function Map() {
     parseGrid()
   }, [])
 
+  // Add map layers
   useEffect(() => {
     if (!gridData) return;
-    const gridLayer = new GridLayer(gridData);
+
+    const layer0 = new GridLayer("grid_0", gridData, [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]);
+    const layer1 = new GridLayer("grid_1", gridData, [0.0, 1.0, 0.0], [0.005, 0.0, 0.0]);
+    const layer2 = new GridLayer("grid_2", gridData, [0.0, 0.0, 1.0], [0.0025, 0.0025, 0.0]);
+
+    const addLayers = () => {
+      map?.addLayer(layer0);
+      map?.addLayer(layer1);
+      map?.addLayer(layer2);
+    };
 
     // Add custom layer to the map
     if (map?.loaded) {
-      map.addLayer(gridLayer);
+      addLayers();
     } else {
-      map?.on('load', () => {
-        map.addLayer(gridLayer);
-      });
+      map?.on('load', addLayers);
     }
   }, [map, gridData]);
 

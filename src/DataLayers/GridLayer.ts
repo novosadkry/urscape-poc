@@ -1,4 +1,4 @@
-import { mat4 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import { GridData } from './GridData';
 import { CustomLayerInterface, MercatorCoordinate } from 'maplibre-gl';
 
@@ -8,17 +8,23 @@ import fragmentSource from '../assets/shaders/grid.fragment.glsl?raw';
 
 export class GridLayer implements CustomLayerInterface {
   public readonly id: string;
-  public readonly type: "custom";
+  public readonly type = "custom";
 
   private grid: GridData;
+  private color: vec3;
+  private offset: vec3;
+
   private program: WebGLProgram;
   private vertexBuffer: WebGLBuffer;
   private attributes: { aPos: number, aUV: number };
 
-  constructor(grid: GridData) {
-    this.id = "dataGrid"
-    this.type = "custom"
+  constructor(id: string, grid: GridData, color: vec3, offset: vec3) {
+    this.id = id;
+
     this.grid = grid;
+    this.color = color;
+    this.offset = offset;
+
     this.program = {};
     this.vertexBuffer = {};
     this.attributes = { aPos: 0, aUV: 0 };
@@ -51,10 +57,10 @@ export class GridLayer implements CustomLayerInterface {
     const south = this.grid.metadata["South"] as number;
 
     // Define vertices of the triangle to be rendered
-    const p0 = MercatorCoordinate.fromLngLat({ lng: west, lat: south });
-    const p1 = MercatorCoordinate.fromLngLat({ lng: east, lat: south });
-    const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
-    const p3 = MercatorCoordinate.fromLngLat({ lng: east, lat: north });
+    const p0 = MercatorCoordinate.fromLngLat({ lng: west + this.offset[0], lat: south + this.offset[1] });
+    const p1 = MercatorCoordinate.fromLngLat({ lng: east + this.offset[0], lat: south + this.offset[1] });
+    const p2 = MercatorCoordinate.fromLngLat({ lng: west + this.offset[0], lat: north + this.offset[1] });
+    const p3 = MercatorCoordinate.fromLngLat({ lng: east + this.offset[0], lat: north + this.offset[1] });
 
     // Create and initialize a buffer to store vertex data
     this.vertexBuffer = gl.createBuffer()!;
@@ -89,10 +95,16 @@ export class GridLayer implements CustomLayerInterface {
 
     // Setup shader program
     gl.useProgram(this.program);
+
+    // Setup uniforms
     gl.uniformMatrix4fv(
       gl.getUniformLocation(this.program!, 'u_matrix'),
       false,
       matrix
+    );
+    gl.uniform3fv(
+      gl.getUniformLocation(this.program!, 'u_color'),
+      this.color
     );
 
     // Setup VAO and VBO
