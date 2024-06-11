@@ -1,37 +1,41 @@
 import { mat4 } from 'gl-matrix';
+import { GridData } from './GridData';
 import { CustomLayerInterface, MercatorCoordinate } from 'maplibre-gl';
 
-import vertexSource from './assets/shaders/grid.vertex.glsl?raw';
-import fragmentSource from './assets/shaders/grid.fragment.glsl?raw';
+// Import shader source code as raw string
+import vertexSource from '../assets/shaders/grid.vertex.glsl?raw';
+import fragmentSource from '../assets/shaders/grid.fragment.glsl?raw';
 
 export class GridLayer implements CustomLayerInterface {
-  id: string;
-  type: "custom";
+  public readonly id: string;
+  public readonly type: "custom";
 
-  program: WebGLProgram;
-  vertexBuffer: WebGLBuffer;
-  attributes: { aPos: number, aUV: number };
+  private grid: GridData;
+  private program: WebGLProgram;
+  private vertexBuffer: WebGLBuffer;
+  private attributes: { aPos: number, aUV: number };
 
-  constructor() {
+  constructor(grid: GridData) {
     this.id = "dataGrid"
     this.type = "custom"
+    this.grid = grid;
     this.program = {};
     this.vertexBuffer = {};
     this.attributes = { aPos: 0, aUV: 0 };
   }
 
-  onAdd(_map: maplibregl.Map, gl: WebGLRenderingContext | WebGL2RenderingContext) {
-    // create a vertex shader
+  public onAdd(_map: maplibregl.Map, gl: WebGLRenderingContext | WebGL2RenderingContext) {
+    // Create a vertex shader
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(vertexShader, vertexSource);
     gl.compileShader(vertexShader);
 
-    // create a fragment shader
+    // Create a fragment shader
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
     gl.shaderSource(fragmentShader, fragmentSource);
     gl.compileShader(fragmentShader);
 
-    // link the two shaders into a WebGL program
+    // Link the two shaders into a WebGL program
     this.program = gl.createProgram()!;
     gl.attachShader(this.program, vertexShader);
     gl.attachShader(this.program, fragmentShader);
@@ -40,13 +44,19 @@ export class GridLayer implements CustomLayerInterface {
     this.attributes.aPos = gl.getAttribLocation(this.program, 'a_pos');
     this.attributes.aUV = gl.getAttribLocation(this.program, 'a_uv');
 
-    // define vertices of the triangle to be rendered in the custom style layer
-    const p0 = MercatorCoordinate.fromLngLat({ lng: 103.7, lat: 1.18 });
-    const p1 = MercatorCoordinate.fromLngLat({ lng: 103.9, lat: 1.18 });
-    const p2 = MercatorCoordinate.fromLngLat({ lng: 103.7, lat: 1.33 });
-    const p3 = MercatorCoordinate.fromLngLat({ lng: 103.9, lat: 1.33 });
+    // Define quad using Mercator coordinates
+    const west = this.grid.metadata["West"] as number;
+    const north = this.grid.metadata["North"] as number;
+    const east = this.grid.metadata["East"] as number;
+    const south = this.grid.metadata["South"] as number;
 
-    // create and initialize a WebGLBuffer to store vertex and color data
+    // Define vertices of the triangle to be rendered
+    const p0 = MercatorCoordinate.fromLngLat({ lng: west, lat: south });
+    const p1 = MercatorCoordinate.fromLngLat({ lng: east, lat: south });
+    const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
+    const p3 = MercatorCoordinate.fromLngLat({ lng: east, lat: north });
+
+    // Create and initialize a buffer to store vertex data
     this.vertexBuffer = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     gl.bufferData(
@@ -69,7 +79,7 @@ export class GridLayer implements CustomLayerInterface {
     );
   }
 
-  render(gl: WebGLRenderingContext | WebGL2RenderingContext, matrix: mat4) {
+  public render(gl: WebGLRenderingContext | WebGL2RenderingContext, matrix: mat4) {
     // var relativeToEyeMatrix = [
     //   matrix[0], matrix[1], matrix[2], matrix[3],
     //   matrix[4], matrix[5], matrix[6], matrix[7],
@@ -77,19 +87,26 @@ export class GridLayer implements CustomLayerInterface {
     //   0, 0, 0, matrix[15]
     // ];
 
+    // Setup shader program
     gl.useProgram(this.program);
     gl.uniformMatrix4fv(
       gl.getUniformLocation(this.program!, 'u_matrix'),
       false,
       matrix
     );
+
+    // Setup VAO and VBO
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     gl.enableVertexAttribArray(this.attributes.aPos);
     gl.vertexAttribPointer(this.attributes.aPos, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(this.attributes.aUV);
     gl.vertexAttribPointer(this.attributes.aUV, 2, gl.FLOAT, false, 16, 8);
+
+    // Additional blending
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    // Draw call
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
