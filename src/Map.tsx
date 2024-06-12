@@ -47,14 +47,10 @@ export default function Map() {
   useEffect(() => {
     if (!gridData) return;
 
-    const layer0 = new GridLayer("grid_0", gridData, [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]);
-    const layer1 = new GridLayer("grid_1", gridData, [0.0, 1.0, 0.0], [0.005, 0.0, 0.0]);
-    const layer2 = new GridLayer("grid_2", gridData, [0.0, 0.0, 1.0], [0.0025, 0.0025, 0.0]);
+    const layer = new GridLayer("grid_0", gridData, [1.0, 0.0, 0.0]);
 
     const addLayers = () => {
-      map?.addLayer(layer0);
-      map?.addLayer(layer1);
-      map?.addLayer(layer2);
+      map?.addLayer(layer);
     };
 
     // Add custom layer to the map
