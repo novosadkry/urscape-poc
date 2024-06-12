@@ -20,7 +20,7 @@ export type GridData = {
   values: GridValue[];
 };
 
-export function parseData(input: string): Promise<GridData> {
+export function parseCSV(input: string): Promise<GridData> {
   return new Promise((resolve, reject) => {
     parse(input, {
       delimiter: ',',

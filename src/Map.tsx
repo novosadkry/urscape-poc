@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import maplibre from 'maplibre-gl';
 import { GridLayer } from './DataLayers/GridLayer';
-import { GridData, parseData } from './DataLayers/GridData';
+import { GridData, parseCSV } from './DataLayers/GridData';
 import mapStyle from './MapStyle';
 
 import './Map.css';
@@ -37,7 +37,7 @@ export default function Map() {
   useEffect(() => {
     async function parseGrid() {
       // Initialize custom layer
-      setGridData(await parseData(gridCSV));
+      setGridData(await parseCSV(gridCSV));
     }
 
     parseGrid()
