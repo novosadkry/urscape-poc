@@ -19,9 +19,9 @@ uniform sampler2D u_Mask;
 
 uniform vec4 u_Tint;
 
-in vec2 v_uv;
-in vec4 v_worldPos;
-in vec4 v_constants;
+in vec2 v_UV;
+in vec4 v_WorldPos;
+in vec4 v_Constants;
 
 out vec4 fragColor;
 
@@ -40,15 +40,15 @@ float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
 }
 
 void main() {
-    int index = int(floor(v_uv.x * float(u_CountX))) + int(floor(v_uv.y * float(u_CountY))) * u_CountX;
-    vec4 value = texture(u_Values, v_uv);
+    int index = int(floor(v_UV.x * float(u_CountX))) + int(floor(v_UV.y * float(u_CountY))) * u_CountX;
+    vec4 value = texture(u_Values, v_UV);
 
     vec4 color = u_Tint;
     color.a = value.r;
 
     // Get the pixel opacity for the current cell
-    float distCamToPixel = distance(v_worldPos, vec4(u_CameraPos, 1.0));
-    float cellOpacity = GetCellOpacity(v_uv, v_constants, distCamToPixel);
+    float distCamToPixel = distance(v_WorldPos, vec4(u_CameraPos, 1.0));
+    float cellOpacity = GetCellOpacity(v_UV, v_Constants, distCamToPixel);
 
     color.a *= cellOpacity;
     fragColor = clamp(color, 0.0, 1.0);
