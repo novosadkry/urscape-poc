@@ -38,4 +38,7 @@ void main() {
     v_Constants = vec4(clamp(1.0 - cellHalfSize * 50.0, 0.0, 1.0), length(u_CameraPos), fresnel, feather);
 
     gl_Position = u_MVP * pos;
+
+    // TODO: delete me
+    gl_Position = u_MVP * vec4(a_Pos, 1.0);
 }

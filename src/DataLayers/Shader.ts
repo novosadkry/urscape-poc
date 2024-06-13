@@ -76,16 +76,20 @@ export abstract class Shader {
     const fragmentShader = this.createShader(gl, this.fragmentSource, gl.FRAGMENT_SHADER);
 
     // Link the two shaders into a WebGL program
-    const program = gl.createProgram()!;
+    const program = gl.createProgram();
+    if (!program) throw new Error("An error occured while creating the shader program");
+
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const error = gl.getProgramInfoLog(program);
       gl.deleteShader(vertexShader);
       gl.deleteShader(fragmentShader);
       gl.deleteProgram(program);
-      throw new Error("An error occured during shader linking: " + gl.getProgramInfoLog(program));
+
+      throw new Error("An error occured during shader linking: " + error);
     }
 
     // Clean-up resources
@@ -105,8 +109,10 @@ export abstract class Shader {
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const error = gl.getShaderInfoLog(shader);
       gl.deleteShader(shader);
-      throw new Error("An error occured during shader compile: " + gl.getShaderInfoLog(shader));
+
+      throw new Error("An error occured during shader compile: " + error);
     }
 
     return shader;

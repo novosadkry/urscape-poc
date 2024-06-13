@@ -53,5 +53,6 @@ void main() {
     color.a *= cellOpacity;
     fragColor = clamp(color, 0.0, 1.0);
 
+    // TODO: delete me
     fragColor = u_Tint;
 }

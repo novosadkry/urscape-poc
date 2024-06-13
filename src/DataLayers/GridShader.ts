@@ -29,15 +29,16 @@ export class GridShader extends Shader {
   }
 
   public setPositions(gl: WebGLContext, values: vec3[]) {
-    const index = gl.getAttribLocation(this.program, "a_Pos");
+    const name = "a_Pos";
+    const index = gl.getAttribLocation(this.program, name);
     const array = values.flat() as number[];
 
     this.setAttributeData(
       gl,
       array,
       {
-        index,
-        name: "a_pos",
+        index: index,
+        name: name,
         type: gl.FLOAT,
         normalized: false,
         size: 3,
@@ -48,15 +49,16 @@ export class GridShader extends Shader {
   }
 
   public setUVs(gl: WebGLContext, values: vec2[]) {
-    const index = gl.getAttribLocation(this.program, "a_UV");
+    const name = "a_UV";
+    const index = gl.getAttribLocation(this.program, name);
     const array = values.flat() as number[];
 
     this.setAttributeData(
       gl,
       array,
       {
-        index,
-        name: "a_uv",
+        index: index,
+        name: name,
         type: gl.FLOAT,
         normalized: false,
         size: 2,

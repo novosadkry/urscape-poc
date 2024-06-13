@@ -1,9 +1,8 @@
 import { mat4 } from 'gl-matrix';
 import { GridData } from './GridData';
+import { WebGLContext } from './Shader';
 import { GridShader } from './GridShader';
 import { CustomLayerInterface, MercatorCoordinate } from 'maplibre-gl';
-
-type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
 
 export class GridLayer implements CustomLayerInterface {
   public readonly id: string;
