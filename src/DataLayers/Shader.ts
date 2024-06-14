@@ -46,6 +46,13 @@ export abstract class Shader {
     this.fragmentSource = fragmentSource;
   }
 
+  /**
+   * Creates and initializes this shader program.
+   *
+   * This method should be called only once.
+   *
+   * @param gl - The WebGL context.
+   */
   public init(gl: WebGLContext) {
     this.program = this.createProgram(gl);
   }

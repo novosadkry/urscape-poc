@@ -1,15 +1,17 @@
-import { mat4 } from 'gl-matrix';
 import { GridData } from './GridData';
 import { WebGLContext } from './Shader';
 import { GridShader } from './GridShader';
 import { CustomLayerInterface, MercatorCoordinate } from 'maplibre-gl';
+import * as glm from 'gl-matrix';
 
 export class GridLayer implements CustomLayerInterface {
   public readonly id: string;
   public readonly type = "custom";
+  public readonly renderingMode = "2d";
 
   private grid: GridData;
   private shader: GridShader;
+  private map?: maplibregl.Map;
 
   constructor(id: string, grid: GridData) {
     this.id = id;
@@ -17,7 +19,8 @@ export class GridLayer implements CustomLayerInterface {
     this.shader = new GridShader();
   }
 
-  public onAdd(_map: maplibregl.Map, gl: WebGLContext) {
+  public onAdd(map: maplibregl.Map, gl: WebGLContext) {
+    this.map = map;
     this.shader.init(gl);
 
     const west = this.grid.metadata["West"] as number;
@@ -55,9 +58,12 @@ export class GridLayer implements CustomLayerInterface {
     );
   }
 
-  public render(gl: WebGLContext, matrix: mat4) {
-    // Bind shader
-    this.shader.u_MVP = matrix;
+  public render(gl: WebGLContext, matrix: glm.mat4) {
+    const center = MercatorCoordinate.fromLngLat(this.map!.transform.center);
+
+    // Set uniforms and bind shader program
+    this.shader.mvp = matrix;
+    this.shader.camera = [center.x, center.y, center.z];
     this.shader.bind(gl);
 
     // Additive color blending

@@ -2,11 +2,10 @@
 
 precision highp int;
 precision highp float;
+precision highp sampler2D;
 
-uniform int u_CountX;
-uniform int u_CountY;
-uniform float u_OffsetX;
-uniform float u_OffsetY;
+uniform ivec2 u_Count;
+uniform vec2 u_Offset;
 uniform float u_Thickness;
 uniform float u_CellHalfSize;
 
@@ -30,8 +29,8 @@ float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
     float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
     float feather = clamp(constants.w + satDist, 0.02, 1.0);
 
-    float cellX = floor(coords.x * float(u_CountX)) - 0.5; // ???
-    float cellY = floor(coords.y * float(u_CountY)) - 0.5; // ???
+    float cellX = floor(coords.x * float(u_Count.x)) - 0.5; // ???
+    float cellY = floor(coords.y * float(u_Count.y)) - 0.5; // ???
 
     // Square shape
     float cellMin = halfSize + feather + 0.0001;
@@ -40,7 +39,7 @@ float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
 }
 
 void main() {
-    int index = int(floor(v_UV.x * float(u_CountX))) + int(floor(v_UV.y * float(u_CountY))) * u_CountX;
+    int index = int(floor(v_UV.x * float(u_Count.x))) + int(floor(v_UV.y * float(u_Count.y))) * u_Count.x;
     vec4 value = texture(u_Values, v_UV);
 
     vec4 color = u_Tint;
@@ -53,6 +52,5 @@ void main() {
     color.a *= cellOpacity;
     fragColor = clamp(color, 0.0, 1.0);
 
-    // TODO: delete me
-    fragColor = u_Tint;
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

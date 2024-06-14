@@ -1,34 +1,97 @@
 import { Shader, WebGLContext } from './Shader';
-import { mat4, vec4, vec3, vec2 } from 'gl-matrix';
+import * as glm from 'gl-matrix';
 
 // Import shader source code as raw string
 import vertexSource from '../assets/shaders/grid.vertex.glsl?raw';
 import fragmentSource from '../assets/shaders/grid.fragment.glsl?raw';
 
+// TODO: Move to Shader Utils?
+function encodeFloatToDouble(value: number) {
+  const result = new Float32Array(2);
+  result[0] = value;
+
+  const delta = value - result[0];
+  result[1] = delta;
+
+  return result;
+}
+
 export class GridShader extends Shader {
-  public u_MVP: mat4;
+  public mvp: glm.ReadonlyMat4;
+  public camera: glm.ReadonlyVec3;
 
   constructor() {
     super(vertexSource, fragmentSource)
-    this.u_MVP = mat4.create();
+    this.mvp = glm.mat4.create();
+    this.camera = glm.vec3.create();
   }
 
   public bind(gl: WebGLContext) {
+
+    // ------------------------------
+    // This shader prevents jitter caused by a loss of precision
+    // by emulating double-precision and Camera-relative rendering.
+    //
+    // On the GPU side we subtract center (stored as two floats in uniforms)
+    // from all vertex positions (this makes all vertices relative to center).
+    //
+    // After applying projection we translate the vertices to their original
+    // position by now adding the center (which we substracted earlier).
+    //
+    // The translation operation is included in the MVP matrix below.
+    // ------------------------------
+
     super.bind(gl);
+
+    glm.glMatrix.setMatrixArrayType(Array);
+    const mvp = glm.mat4.clone(this.mvp);
+    glm.mat4.translate(mvp, mvp, this.camera);
+
+    const camera = [
+      encodeFloatToDouble(this.camera[0]),
+      encodeFloatToDouble(this.camera[1]),
+      encodeFloatToDouble(this.camera[2]),
+    ];
+
+    const cameraHigh = [camera[0][0], camera[1][0], camera[2][0]];
+    const cameraLow = [camera[0][1], camera[1][1], camera[2][1]];
+
+    // ------------------------------
+    // Set uniform values
 
     gl.uniformMatrix4fv(
       gl.getUniformLocation(this.program, 'u_MVP'),
       false,
-      this.u_MVP
+      mvp
+    );
+
+    gl.uniform3fv(
+      gl.getUniformLocation(this.program, 'u_CameraHigh'),
+      cameraHigh
+    );
+
+    gl.uniform3fv(
+      gl.getUniformLocation(this.program, 'u_CameraLow'),
+      cameraLow
     );
 
     gl.uniform4fv(
       gl.getUniformLocation(this.program, 'u_Tint'),
       [1.0, 0.0, 0.0, 0.5]
     );
+
+    gl.uniform2fv(
+      gl.getUniformLocation(this.program, 'u_Offset'),
+      [0.0, 0.0]
+    );
+
+    gl.uniform2iv(
+      gl.getUniformLocation(this.program, 'u_Count'),
+      [100, 100]
+    );
   }
 
-  public setPositions(gl: WebGLContext, values: vec3[]) {
+  public setPositions(gl: WebGLContext, values: glm.vec3[]) {
     const name = "a_Pos";
     const index = gl.getAttribLocation(this.program, name);
     const array = values.flat() as number[];
@@ -48,7 +111,7 @@ export class GridShader extends Shader {
     );
   }
 
-  public setUVs(gl: WebGLContext, values: vec2[]) {
+  public setUVs(gl: WebGLContext, values: glm.vec2[]) {
     const name = "a_UV";
     const index = gl.getAttribLocation(this.program, name);
     const array = values.flat() as number[];
@@ -68,7 +131,7 @@ export class GridShader extends Shader {
     );
   }
 
-  public setValues(gl: WebGLContext, values: vec4[]) {
+  public setValues(gl: WebGLContext, values: glm.vec4[]) {
     const name = "u_Values";
     const index = gl.getUniformLocation(this.program, name)!;
     const array = values.flat() as number[];
