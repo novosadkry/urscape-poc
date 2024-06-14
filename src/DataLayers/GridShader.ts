@@ -1,5 +1,5 @@
 import { Shader, WebGLContext } from './Shader';
-import { mat4, vec3, vec2 } from 'gl-matrix';
+import { mat4, vec4, vec3, vec2 } from 'gl-matrix';
 
 // Import shader source code as raw string
 import vertexSource from '../assets/shaders/grid.vertex.glsl?raw';
@@ -64,6 +64,24 @@ export class GridShader extends Shader {
         size: 2,
         stride: 0,
         offset: 0,
+      },
+    );
+  }
+
+  public setValues(gl: WebGLContext, values: vec4[]) {
+    const name = "u_Values";
+    const index = gl.getUniformLocation(this.program, name)!;
+    const array = values.flat() as number[];
+
+    this.setTextureData(
+      gl,
+      array,
+      {
+        index: index,
+        name: name,
+        width: values.length,
+        height: 1,
+        format: gl.RGBA,
       },
     );
   }

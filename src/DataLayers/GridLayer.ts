@@ -47,6 +47,12 @@ export class GridLayer implements CustomLayerInterface {
         [1.0, 1.0],
       ],
     );
+
+    this.shader.setValues(gl,
+      [
+        [255, 0, 0, 255]
+      ]
+    );
   }
 
   public render(gl: WebGLContext, matrix: mat4) {
