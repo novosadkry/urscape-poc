@@ -51,19 +51,26 @@ export class GridLayer implements CustomLayerInterface {
       ],
     );
 
-    this.shader.setValues(gl,
-      [
-        [255, 0, 0, 255]
-      ]
-    );
+    this.shader.setGrid(gl, this.grid);
   }
 
   public render(gl: WebGLContext, matrix: glm.mat4) {
-    const center = MercatorCoordinate.fromLngLat(this.map!.transform.center);
+    const centerMercator = MercatorCoordinate.fromLngLat(this.map!.transform.center);
+    const center: glm.vec3 = [centerMercator.x, centerMercator.y, centerMercator.z];
+
+    const { lngLat, altitude } = this.map!.transform.getCameraPosition();
+    const cameraMercator = MercatorCoordinate.fromLngLat(lngLat, altitude);
+
+    const camera: glm.vec3 = [
+      cameraMercator.x,
+      cameraMercator.y,
+      cameraMercator.z
+    ];
 
     // Set uniforms and bind shader program
     this.shader.mvp = matrix;
-    this.shader.camera = [center.x, center.y, center.z];
+    this.shader.center = center;
+    this.shader.camera = camera;
     this.shader.bind(gl);
 
     // Additive color blending

@@ -135,8 +135,15 @@ export abstract class Shader {
     const texture = this.textures[params.name] ?? gl.createTexture();
     if (!texture) throw new Error("An error occurred while creating a texture object");
 
+    // Check for maximum supported texture resolution
+    const MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    if (params.width > MAX_TEXTURE_SIZE || params.height > MAX_TEXTURE_SIZE) {
+      throw new Error("Unsupported texture size (exceeds " + MAX_TEXTURE_SIZE + ")");
+    }
+
     // Upload the data to a texture image
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,                      // Mipmap level

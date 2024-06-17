@@ -1,3 +1,4 @@
+import { GridData } from './GridData';
 import { Shader, WebGLContext } from './Shader';
 import * as glm from 'gl-matrix';
 
@@ -19,11 +20,25 @@ function encodeFloatToDouble(value: number) {
 export class GridShader extends Shader {
   public mvp: glm.ReadonlyMat4;
   public camera: glm.ReadonlyVec3;
+  public center: glm.ReadonlyVec3;
+
+  private grid: GridData;
 
   constructor() {
     super(vertexSource, fragmentSource)
     this.mvp = glm.mat4.create();
     this.camera = glm.vec3.create();
+    this.center = glm.vec3.create();
+
+    this.grid = {
+      countX: 0,
+      countY: 0,
+      mask: [],
+      metadata: {},
+      values: [],
+      maxValue: 0,
+      minValue: 0
+    }
   }
 
   public bind(gl: WebGLContext) {
@@ -45,50 +60,27 @@ export class GridShader extends Shader {
 
     glm.glMatrix.setMatrixArrayType(Array);
     const mvp = glm.mat4.clone(this.mvp);
-    glm.mat4.translate(mvp, mvp, this.camera);
+    glm.mat4.translate(mvp, mvp, this.center);
 
-    const camera = [
-      encodeFloatToDouble(this.camera[0]),
-      encodeFloatToDouble(this.camera[1]),
-      encodeFloatToDouble(this.camera[2]),
+    const center = [
+      encodeFloatToDouble(this.center[0]),
+      encodeFloatToDouble(this.center[1]),
+      encodeFloatToDouble(this.center[2]),
     ];
 
-    const cameraHigh = [camera[0][0], camera[1][0], camera[2][0]];
-    const cameraLow = [camera[0][1], camera[1][1], camera[2][1]];
+    const centerHigh = [center[0][0], center[1][0], center[2][0]];
+    const centerLow = [center[0][1], center[1][1], center[2][1]];
 
     // ------------------------------
     // Set uniform values
 
-    gl.uniformMatrix4fv(
-      gl.getUniformLocation(this.program, 'u_MVP'),
-      false,
-      mvp
-    );
-
-    gl.uniform3fv(
-      gl.getUniformLocation(this.program, 'u_CameraHigh'),
-      cameraHigh
-    );
-
-    gl.uniform3fv(
-      gl.getUniformLocation(this.program, 'u_CameraLow'),
-      cameraLow
-    );
-
-    gl.uniform4fv(
-      gl.getUniformLocation(this.program, 'u_Tint'),
-      [1.0, 0.0, 0.0, 0.5]
-    );
-
-    gl.uniform2fv(
-      gl.getUniformLocation(this.program, 'u_Offset'),
-      [0.0, 0.0]
-    );
-
-    gl.uniform2iv(
-      gl.getUniformLocation(this.program, 'u_Count'),
-      [100, 100]
-    );
+    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'u_MVP'), false, mvp);
+    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Center.high'), centerHigh);
+    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Center.low'), centerLow);
+    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Camera'), this.camera);
+    gl.uniform4fv(gl.getUniformLocation(this.program, 'u_Tint'), [1.0, 0.0, 0.0, 0.5]);
+    gl.uniform2fv(gl.getUniformLocation(this.program, 'u_Offset'), [0.0, 0.0]);
+    gl.uniform2iv(gl.getUniformLocation(this.program, 'u_Count'), [this.grid.countX, this.grid.countY]);
   }
 
   public setPositions(gl: WebGLContext, values: glm.vec3[]) {
@@ -131,10 +123,14 @@ export class GridShader extends Shader {
     );
   }
 
-  public setValues(gl: WebGLContext, values: glm.vec4[]) {
+  public setGrid(gl: WebGLContext, grid: GridData) {
     const name = "u_Values";
     const index = gl.getUniformLocation(this.program, name)!;
-    const array = values.flat() as number[];
+
+    // Normalize values into byte range (0-255)
+    const array = (grid.values.flat() as number[])
+      .map(x => (x - grid.minValue) / (grid.maxValue - grid.minValue))
+      .map(x => Math.floor(x * 255));
 
     this.setTextureData(
       gl,
@@ -142,10 +138,12 @@ export class GridShader extends Shader {
       {
         index: index,
         name: name,
-        width: values.length,
-        height: 1,
-        format: gl.RGBA,
+        width: grid.countX,
+        height: grid.countY,
+        format: gl.LUMINANCE,
       },
     );
+
+    this.grid = grid;
   }
 }

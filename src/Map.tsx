@@ -47,7 +47,7 @@ export default function Map() {
   useEffect(() => {
     if (!gridData) return;
 
-    const layer = new GridLayer("grid_0", gridData, [1.0, 0.0, 0.0]);
+    const layer = new GridLayer("grid_0", gridData);
 
     const addLayers = () => {
       map?.addLayer(layer);

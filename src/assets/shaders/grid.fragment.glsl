@@ -5,13 +5,10 @@ precision highp float;
 precision highp sampler2D;
 
 uniform ivec2 u_Count;
-uniform vec2 u_Offset;
 uniform float u_Thickness;
 uniform float u_CellHalfSize;
 
-uniform mat4 u_Model;
-uniform mat4 u_MVP;
-uniform vec3 u_CameraPos;
+uniform vec3 u_Camera;
 
 uniform sampler2D u_Values;
 uniform sampler2D u_Mask;
@@ -25,17 +22,20 @@ in vec4 v_Constants;
 out vec4 fragColor;
 
 float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
-    float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
-    float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
-    float feather = clamp(constants.w + satDist, 0.02, 1.0);
+    // float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
+    // float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
+    // float feather = clamp(constants.w + satDist, 0.02, 1.0);
 
-    float cellX = floor(coords.x * float(u_Count.x)) - 0.5; // ???
-    float cellY = floor(coords.y * float(u_Count.y)) - 0.5; // ???
+    float halfSize = 0.25;
+    float feather = 0.1;
 
-    // Square shape
-    float cellMin = halfSize + feather + 0.0001;
-    float cellMax = halfSize;
-    return smoothstep(cellMin, cellMax, abs(cellX)) * smoothstep(cellMin, cellMax, abs(cellY));
+    float cellX = fract(coords.x * float(u_Count.x)) - 0.5;
+    float cellY = fract(coords.y * float(u_Count.y)) - 0.5;
+
+	float cellMin = pow(halfSize + feather, 2.0) + 0.0001;
+	float cellMax = halfSize * halfSize;
+
+	return smoothstep(cellMin, cellMax, cellX*cellX + cellY*cellY);
 }
 
 void main() {
@@ -46,11 +46,9 @@ void main() {
     color.a = value.r;
 
     // Get the pixel opacity for the current cell
-    float distCamToPixel = distance(v_WorldPos, vec4(u_CameraPos, 1.0));
+    float distCamToPixel = distance(v_WorldPos, vec4(u_Camera, 1.0));
     float cellOpacity = GetCellOpacity(v_UV, v_Constants, distCamToPixel);
 
     color.a *= cellOpacity;
     fragColor = clamp(color, 0.0, 1.0);
-
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

@@ -10,14 +10,14 @@ export type GridMetadata = {
   [key: string]: string | number | boolean;
 };
 
-export type GridValue = {
-  value: number;
-  mask: number;
-};
-
 export type GridData = {
   metadata: GridMetadata;
-  values: GridValue[];
+  values: number[];
+  mask: number[];
+  countX: number,
+  countY: number,
+  minValue: number;
+  maxValue: number;
 };
 
 export function parseCSV(input: string): Promise<GridData> {
@@ -33,7 +33,8 @@ export function parseCSV(input: string): Promise<GridData> {
       }
 
       const metadata: GridMetadata = {};
-      const values: GridValue[] = [];
+      const values: number[] = [];
+      const mask: number[] = [];
       let section: GridDataSection | null = null;
 
       for (const record of records) {
@@ -71,12 +72,20 @@ export function parseCSV(input: string): Promise<GridData> {
           case GridDataSection.Categories:
             throw new Error("Not implemented");
           case GridDataSection.Values:
-            values.push({ value: parseInt(key), mask: parseInt(value) });
+            values.push(parseInt(key));
+            mask.push(parseInt(value));
             break;
         }
       }
 
-      resolve({ metadata, values });
+      resolve({
+        metadata,
+        values, mask,
+        countX: metadata["Count X"] as number,
+        countY: metadata["Count Y"] as number,
+        minValue: Math.min(...values),
+        maxValue: Math.max(...values),
+      });
     });
   });
 }
