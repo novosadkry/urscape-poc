@@ -10,12 +10,14 @@ export class GridLayer implements CustomLayerInterface {
   public readonly renderingMode = "2d";
 
   private grid: GridData;
+  private tint: glm.vec3;
   private shader: GridShader;
   private map?: maplibregl.Map;
 
-  constructor(id: string, grid: GridData) {
+  constructor(id: string, grid: GridData, tint: glm.vec3) {
     this.id = id;
     this.grid = grid;
+    this.tint = tint;
     this.shader = new GridShader();
   }
 
@@ -44,17 +46,17 @@ export class GridLayer implements CustomLayerInterface {
 
     this.shader.setUVs(gl,
       [
-        [0.0, 0.0],
-        [1.0, 0.0],
         [0.0, 1.0],
         [1.0, 1.0],
+        [0.0, 0.0],
+        [1.0, 0.0],
       ],
     );
 
     this.shader.setGrid(gl, this.grid);
   }
 
-  public render(gl: WebGLContext, matrix: glm.mat4) {
+  public render(gl: WebGLContext, mvp: glm.mat4) {
     const centerMercator = MercatorCoordinate.fromLngLat(this.map!.transform.center);
     const center: glm.vec3 = [centerMercator.x, centerMercator.y, centerMercator.z];
 
@@ -68,9 +70,10 @@ export class GridLayer implements CustomLayerInterface {
     ];
 
     // Set uniforms and bind shader program
-    this.shader.mvp = matrix;
+    this.shader.mvp = mvp;
     this.shader.center = center;
     this.shader.camera = camera;
+    this.shader.tint = this.tint;
     this.shader.bind(gl);
 
     // Additive color blending

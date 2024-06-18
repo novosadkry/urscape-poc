@@ -29,15 +29,15 @@ void main() {
     pos.x += u_Offset.x / float(u_Count.x);
     pos.y += u_Offset.y / float(u_Count.y);
 
-    vec3 cameraDir = u_Camera - u_Center.high - u_Center.low;
+    vec3 centerToCamera = u_Camera - u_Center.high - u_Center.low;
 
     float cellHalfSize = u_MVP[0][0] / float(u_Count.x + 1);
-    float fresnel = clamp(1.9 * (0.97 - normalize(cameraDir).y), 0.0, 1.0) / cellHalfSize * 0.003;
+    float fresnel = clamp(1.9 * (0.97 - normalize(centerToCamera).y), 0.0, 1.0) / cellHalfSize * 0.003;
     float feather = clamp(pow(0.004 / cellHalfSize, 2.0), 0.0, 1.0);
 
     v_UV = a_UV;
-    v_WorldPos = pos;
-    v_Constants = vec4(clamp(1.0 - cellHalfSize * 50.0, 0.0, 1.0), length(cameraDir), fresnel, feather);
+    v_WorldPos = vec4(a_Pos, 1.0);
+    v_Constants = vec4(clamp(1.0 - cellHalfSize * 50.0, 0.0, 1.0), length(centerToCamera), fresnel, feather);
 
     gl_Position = u_MVP * pos;
 }
