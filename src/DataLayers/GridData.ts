@@ -20,6 +20,19 @@ export type GridData = {
   maxValue: number;
 };
 
+function getMinMax(array: number[]): [number, number] {
+  let len = array.length;
+  let max = -Infinity;
+  let min = +Infinity;
+
+  while (len--) {
+      max = array[len] > max ? array[len] : max;
+      min = array[len] < min ? array[len] : min;
+  }
+
+  return [min, max];
+}
+
 export function parseCSV(input: string): Promise<GridData> {
   return new Promise((resolve, reject) => {
     parse(input, {
@@ -78,13 +91,15 @@ export function parseCSV(input: string): Promise<GridData> {
         }
       }
 
+      const [min, max] = getMinMax(values);
+
       resolve({
         metadata,
         values, mask,
         countX: metadata["Count X"] as number,
         countY: metadata["Count Y"] as number,
-        minValue: Math.min(...values),
-        maxValue: Math.max(...values),
+        minValue: min,
+        maxValue: max,
       });
     });
   });
