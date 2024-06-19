@@ -22,9 +22,12 @@ in vec4 v_Constants;
 out vec4 fragColor;
 
 float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
-    float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
-    float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
-    float feather = clamp(constants.w + satDist, 0.02, 1.0);
+    // float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
+    // float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
+    // float feather = clamp(constants.w + satDist, 0.02, 1.0);
+
+    float halfSize = 0.35;
+    float feather = 0.01;
 
     float cellX = fract(coords.x * float(u_Count.x)) - 0.5;
     float cellY = fract(coords.y * float(u_Count.y)) - 0.5;
