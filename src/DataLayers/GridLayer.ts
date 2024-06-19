@@ -31,11 +31,7 @@ export class GridLayer implements Layer {
     this.map = map;
     this.shader.init(gl);
 
-    const west = this.grid.metadata["West"] as number;
-    const north = this.grid.metadata["North"] as number;
-    const east = this.grid.metadata["East"] as number;
-    const south = this.grid.metadata["South"] as number;
-
+    const { north, east, south, west } = this.grid.bounds;
     const p0 = MercatorCoordinate.fromLngLat({ lng: west, lat: south });
     const p1 = MercatorCoordinate.fromLngLat({ lng: east, lat: south });
     const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
@@ -77,11 +73,18 @@ export class GridLayer implements Layer {
       cameraMercator.z
     ];
 
+    const zoom = this.map!.getZoom();
+
     // Set uniforms and bind shader program
     this.shader.mvp = mvp;
+    this.shader.zoom = zoom;
     this.shader.center = center;
     this.shader.camera = camera;
     this.shader.tint = this.tint;
+    this.shader.count = [
+      this.grid.countX,
+      this.grid.countY,
+    ];
     this.shader.bind(gl);
 
     // Additive color blending

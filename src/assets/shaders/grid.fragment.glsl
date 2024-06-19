@@ -8,6 +8,7 @@ uniform ivec2 u_Count;
 uniform float u_Thickness;
 uniform float u_CellHalfSize;
 
+uniform float u_Zoom;
 uniform vec3 u_Camera;
 
 uniform sampler2D u_Values;
@@ -21,13 +22,26 @@ in vec4 v_Constants;
 
 out vec4 fragColor;
 
-float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
-    // float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
-    // float halfSize = mix(u_CellHalfSize, 0.5, clamp(constants.x + satDist, 0.0, 1.0));
-    // float feather = clamp(constants.w + satDist, 0.02, 1.0);
+//
+// Source: OpenGL 4.2 spec chapter 3.9.11 equation 3.21
+// http://www.opengl.org/registry/doc/glspec42.core.20120427.pdf
+//
+// The factor states the rate of change of a texel coordinate between individual pixels
+// When the factor is >1.0, pixels start skipping over some texels, causing aliasing and artifacts.
+//
+float GetLODScaleFactor(vec2 texel_coords) {
+    vec2 dx = dFdx(texel_coords);
+    vec2 dy = dFdy(texel_coords);
+    float dist_sqr = max(dot(dx, dx), dot(dy, dy));
+    return sqrt(dist_sqr);
+}
 
-    float halfSize = 0.35;
-    float feather = 0.01;
+float GetCellOpacity(vec2 coords, vec4 constants, float distCamToPixel) {
+    float mipmap = GetLODScaleFactor(v_UV * vec2(textureSize(u_Values, 0)));
+
+    float satDist = clamp((distCamToPixel - constants.y) * constants.z, 0.0, 1.0);
+    float halfSize = mix(u_CellHalfSize, 1.0, clamp(mipmap, 0.0, 1.0));
+    float feather = clamp(constants.w + satDist, 0.02, 1.0);
 
     float cellX = fract(coords.x * float(u_Count.x)) - 0.5;
     float cellY = fract(coords.y * float(u_Count.y)) - 0.5;

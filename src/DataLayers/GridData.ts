@@ -6,12 +6,20 @@ enum GridDataSection {
   Values
 }
 
+export type GridBounds = {
+  north: number;
+  east: number;
+  south: number;
+  west: number;
+}
+
 export type GridMetadata = {
   [key: string]: string | number | boolean;
 };
 
 export type GridData = {
   metadata: GridMetadata;
+  bounds: GridBounds;
   values: number[];
   mask: number[];
   countX: number,
@@ -95,6 +103,12 @@ export function parseCSV(input: string): Promise<GridData> {
 
       resolve({
         metadata,
+        bounds: {
+          north: metadata["North"] as number,
+          east: metadata["East"] as number,
+          south: metadata["South"] as number,
+          west: metadata["West"] as number,
+        },
         values, mask,
         countX: metadata["Count X"] as number,
         countY: metadata["Count Y"] as number,

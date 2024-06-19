@@ -22,8 +22,8 @@ export class GridShader extends Shader {
   public camera: glm.ReadonlyVec3;
   public center: glm.ReadonlyVec3;
   public tint: glm.ReadonlyVec3;
-
-  private grid: GridData;
+  public count: glm.ReadonlyVec2;
+  public zoom: number;
 
   constructor() {
     super(vertexSource, fragmentSource)
@@ -31,16 +31,8 @@ export class GridShader extends Shader {
     this.camera = glm.vec3.create();
     this.center = glm.vec3.create();
     this.tint = glm.vec3.create();
-
-    this.grid = {
-      countX: 0,
-      countY: 0,
-      mask: [],
-      metadata: {},
-      values: [],
-      maxValue: 0,
-      minValue: 0
-    }
+    this.count = glm.vec2.create();
+    this.zoom = 0;
   }
 
   public bind(gl: WebGLContext) {
@@ -82,8 +74,9 @@ export class GridShader extends Shader {
     gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Camera'), this.camera);
     gl.uniform4fv(gl.getUniformLocation(this.program, 'u_Tint'), [...this.tint, 1.0]);
     gl.uniform2fv(gl.getUniformLocation(this.program, 'u_Offset'), [0.0, 0.0]);
-    gl.uniform2iv(gl.getUniformLocation(this.program, 'u_Count'), [this.grid.countX, this.grid.countY]);
+    gl.uniform2iv(gl.getUniformLocation(this.program, 'u_Count'), this.count);
     gl.uniform1f(gl.getUniformLocation(this.program, 'u_CellHalfSize'), 0.35);
+    gl.uniform1f(gl.getUniformLocation(this.program, 'u_Zoom'), this.zoom);
   }
 
   public setPositions(gl: WebGLContext, values: glm.vec3[]) {
@@ -146,7 +139,5 @@ export class GridShader extends Shader {
         format: gl.LUMINANCE,
       },
     );
-
-    this.grid = grid;
   }
 }

@@ -13,6 +13,7 @@ uniform ivec2 u_Count;
 uniform vec2 u_Offset;
 
 uniform mat4 u_MVP;
+uniform float u_Zoom;
 uniform vec3 u_Camera;
 uniform vec3d u_Center;
 
