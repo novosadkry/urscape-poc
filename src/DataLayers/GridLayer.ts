@@ -1,18 +1,22 @@
+import { Layer } from './Layer';
 import { GridData } from './GridData';
 import { WebGLContext } from './Shader';
 import { GridShader } from './GridShader';
-import { CustomLayerInterface, MercatorCoordinate } from 'maplibre-gl';
+import { MercatorCoordinate } from 'maplibre-gl';
 import * as glm from 'gl-matrix';
 
-export class GridLayer implements CustomLayerInterface {
+export class GridLayer implements Layer {
   public readonly id: string;
   public readonly type = "custom";
   public readonly renderingMode = "2d";
+  public active: boolean = true;
 
   private grid: GridData;
   private tint: glm.vec3;
   private shader: GridShader;
   private map?: maplibregl.Map;
+
+  private isInitialized: boolean = false;
 
   constructor(id: string, grid: GridData, tint: glm.vec3) {
     this.id = id;
@@ -22,6 +26,8 @@ export class GridLayer implements CustomLayerInterface {
   }
 
   public onAdd(map: maplibregl.Map, gl: WebGLContext) {
+    if (this.isInitialized) return;
+
     this.map = map;
     this.shader.init(gl);
 
@@ -54,6 +60,8 @@ export class GridLayer implements CustomLayerInterface {
     );
 
     this.shader.setGrid(gl, this.grid);
+
+    this.isInitialized = true;
   }
 
   public render(gl: WebGLContext, mvp: glm.mat4) {
