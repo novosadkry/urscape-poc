@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState } from 'react';
-import maplibre from 'maplibre-gl';
+import maplibre, { StyleSpecification } from 'maplibre-gl';
 import { Layer } from './DataLayers/Layer';
-import mapStyle from './MapStyle';
 
 import './Map.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+import mapStyle from './assets/style.json';
 
 type Props = {
   layers: Layer[]
@@ -20,7 +21,7 @@ export default function Map(props: Props) {
     const newMap = new maplibre.Map({
       container: mapRef.current as HTMLElement,
       // projection: 'globe',
-      style: mapStyle,
+      style: mapStyle as StyleSpecification,
       center: [107.641, -6.866],
       zoom: 13,
       antialias: true

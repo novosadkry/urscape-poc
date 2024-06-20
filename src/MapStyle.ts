@@ -1,3 +1,5 @@
+// NOT IN USE. Superseded by assets/style.json
+
 import { StyleSpecification } from "maplibre-gl"
 
 const style: StyleSpecification = {
