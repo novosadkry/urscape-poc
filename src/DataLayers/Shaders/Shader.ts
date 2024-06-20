@@ -1,3 +1,5 @@
+import { Program } from "./Program";
+
 type AttributeParams = {
   name: string,
   index: number,
@@ -18,10 +20,13 @@ type TextureParams = {
 
 export type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
 
+/**
+ * Stores vertex attributes, textures and uniforms for a given shader program.
+ *
+ * Bound before every draw call, handling both shader and data loading.
+ */
 export abstract class Shader {
-  private vertexSource?: string;
-  private fragmentSource?: string;
-  private program: WebGLProgram | null;
+  private program: Program;
 
   protected attributes: {
     [index: string]: {
@@ -37,12 +42,10 @@ export abstract class Shader {
     }
   };
 
-  constructor(vertexSource: string, fragmentSource: string) {
-    this.program = null;
+  constructor(program: Program) {
+    this.program = program;
     this.attributes = {};
     this.textures = {};
-    this.vertexSource = vertexSource;
-    this.fragmentSource = fragmentSource;
   }
 
   /**
@@ -54,8 +57,7 @@ export abstract class Shader {
    * @param gl - The WebGL context.
    */
   public init(gl: WebGLContext) {
-    if (this.program) return;
-    this.program = this.createProgram(gl);
+    this.program.init(gl);
   }
 
   /**
@@ -64,11 +66,7 @@ export abstract class Shader {
    * Available after calling {@link init}
    */
   public getProgram(): WebGLProgram {
-    if (!this.program) {
-      throw new Error("Shader not initialized");
-    }
-
-    return this.program;
+    return this.program.get();
   }
 
   /**
@@ -178,56 +176,5 @@ export abstract class Shader {
 
     // Store the texture and its parameters
     this.textures[params.name] = { texture, params };
-  }
-
-  private createProgram(gl: WebGLContext): WebGLProgram {
-    if (!this.vertexSource || !this.fragmentSource) {
-      throw new Error("Invalid shader source or createProgram called twice");
-    }
-
-    const vertexShader = this.createShader(gl, this.vertexSource, gl.VERTEX_SHADER);
-    const fragmentShader = this.createShader(gl, this.fragmentSource, gl.FRAGMENT_SHADER);
-
-    // Link the two shaders into a WebGL program
-    const program = gl.createProgram();
-    if (!program) throw new Error("An error occured while creating the shader program");
-
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      const error = gl.getProgramInfoLog(program);
-      gl.deleteShader(vertexShader);
-      gl.deleteShader(fragmentShader);
-      gl.deleteProgram(program);
-
-      throw new Error("An error occured during shader linking: " + error);
-    }
-
-    // Clean-up resources
-    gl.deleteShader(vertexShader);
-    gl.deleteShader(fragmentShader);
-    delete this.vertexSource;
-    delete this.fragmentSource;
-
-    return program;
-  }
-
-  private createShader(gl: WebGLContext, source: string, type: number): WebGLShader {
-    const shader = gl.createShader(type);
-    if (!shader) throw new Error("An error occured while creating the shader object");
-
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      const error = gl.getShaderInfoLog(shader);
-      gl.deleteShader(shader);
-
-      throw new Error("An error occured during shader compile: " + error);
-    }
-
-    return shader;
   }
 }

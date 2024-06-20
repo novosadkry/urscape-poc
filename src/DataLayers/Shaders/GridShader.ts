@@ -1,10 +1,7 @@
-import { GridData } from './GridData';
+import { GridData } from '../GridData';
 import { Shader, WebGLContext } from './Shader';
+import GridProgram from './GridProgram';
 import * as glm from 'gl-matrix';
-
-// Import shader source code as raw string
-import vertexSource from '../assets/shaders/grid.vertex.glsl?raw';
-import fragmentSource from '../assets/shaders/grid.fragment.glsl?raw';
 
 // TODO: Move to Shader Utils?
 function encodeFloatToDouble(value: number) {
@@ -26,7 +23,8 @@ export class GridShader extends Shader {
   public zoom: number;
 
   constructor() {
-    super(vertexSource, fragmentSource)
+    super(GridProgram);
+
     this.mvp = glm.mat4.create();
     this.camera = glm.vec3.create();
     this.center = glm.vec3.create();

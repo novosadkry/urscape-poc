@@ -1,7 +1,7 @@
 import { Layer } from './Layer';
 import { GridData } from './GridData';
-import { WebGLContext } from './Shader';
-import { GridShader } from './GridShader';
+import { WebGLContext } from './Shaders/Shader';
+import { GridShader } from './Shaders/GridShader';
 import { MercatorCoordinate } from 'maplibre-gl';
 import * as glm from 'gl-matrix';
 
