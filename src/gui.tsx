@@ -10,37 +10,46 @@ type Props = {
 
 export default function Gui(props: Props) {
   const { layers, setLayers } = props;
-
-  const buttonArray: string[] = [];
-  layers.forEach(layer => {
-    buttonArray.push(" layer " + layer.id);
-  });
-
-  const onLayerClicked = (layer: string) => {
-    alert("TODO - toggle " + layer);
+ const locations: Layer[] = [];
+  const onLayerClicked = (layer: Layer) => {
 
     // React compares references instead of full equality,
     // we need to copy values to a new array to cause rerender
-    layers[0].active = false;
+    layer.active = !layer.active; 
     setLayers([...layers]);
-
-    // TODO:
-    // 1. Get which layer was clicked from layers
-    // 2. Switch the layer.active property
-    // 3. Save layers with setLayers function
   }
 
-  const addButton = (layer: string, i: number) => {
+  const addButton = (layer: Layer, i: number) => {
     return (
-      <button className="layer-button" key={layer} onClick={() => onLayerClicked(layer)} style={{ top: 30 * i }}>
-        {layer}
+      <button className={"layer-button " + (layer.active ? "active" : "")} key={layer.id} onClick={() => onLayerClicked(layer)}>
+        {layer.id.charAt(0).toUpperCase() + layer.id.slice(1)}
       </button>
+    );
+  };
+  const drawGUI = () => {
+    return (
+      <div className="left-panel">
+        <div className="left-layers">
+          <div className="header"> {"DataLayers"} </div>
+          <div className="container"> 
+            { layers.map((layer, i) => addButton(layer, i))} 
+          </div>
+          <div className="left-locations">
+            <div className="header"> {"Locations"} </div>
+            <div className="container"> 
+              { locations.map((location, i) => addButton(location, i))} 
+            </div>
+          </div>  
+        </div>
+
+
+      </div>
     );
   };
 
   return (
     <div>
-      {buttonArray.map((layer, i) => addButton(layer, i))}
+      { drawGUI() }
     </div>
   );
 }
