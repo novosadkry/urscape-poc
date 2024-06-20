@@ -119,7 +119,7 @@ export abstract class Shader {
    */
   protected setAttributeData(gl: WebGLContext, values: number[], params: AttributeParams) {
     // Retrieve the buffer from the map or create a new one if it doesn't exist.
-    const buffer = this.attributes[params.name] ?? gl.createBuffer();
+    const buffer = this.attributes[params.name]?.buffer ?? gl.createBuffer();
     if (!buffer) throw new Error("An error occured while creating a buffer object");
 
     // Upload the data to a vertex buffer
@@ -144,7 +144,7 @@ export abstract class Shader {
    */
   protected setTextureData(gl: WebGLRenderingContext, values: number[], params: TextureParams) {
     // Retrieve the texture from the map or create a new one if it doesn't exist
-    const texture = this.textures[params.name] ?? gl.createTexture();
+    const texture = this.textures[params.name]?.texture ?? gl.createTexture();
     if (!texture) throw new Error("An error occurred while creating a texture object");
 
     // Check for maximum supported texture resolution
