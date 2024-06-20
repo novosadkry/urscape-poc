@@ -15,11 +15,11 @@ export default function Gui(props: Props) {
 
     // React compares references instead of full equality,
     // we need to copy values to a new array to cause rerender
-    layer.active = !layer.active; 
+    layer.active = !layer.active;
     setLayers([...layers]);
   }
 
-  const addButton = (layer: Layer, i: number) => {
+  const addButton = (layer: Layer) => {
     return (
       <button className={"layer-button " + (layer.active ? "active" : "")} key={layer.id} onClick={() => onLayerClicked(layer)}>
         {layer.id.charAt(0).toUpperCase() + layer.id.slice(1)}
@@ -31,15 +31,15 @@ export default function Gui(props: Props) {
       <div className="left-panel">
         <div className="left-layers">
           <div className="header"> {"DataLayers"} </div>
-          <div className="container"> 
-            { layers.map((layer, i) => addButton(layer, i))} 
+          <div className="container">
+            { layers.map((layer) => addButton(layer)) }
           </div>
           <div className="left-locations">
             <div className="header"> {"Locations"} </div>
-            <div className="container"> 
-              { locations.map((location, i) => addButton(location, i))} 
+            <div className="container">
+              { locations.map((location) => addButton(location)) }
             </div>
-          </div>  
+          </div>
         </div>
 
 
