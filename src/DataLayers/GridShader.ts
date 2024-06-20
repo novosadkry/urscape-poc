@@ -51,6 +51,7 @@ export class GridShader extends Shader {
     // ------------------------------
 
     super.bind(gl);
+    const program = this.getProgram();
 
     glm.glMatrix.setMatrixArrayType(Array);
     const mvp = glm.mat4.clone(this.mvp);
@@ -68,20 +69,20 @@ export class GridShader extends Shader {
     // ------------------------------
     // Set uniform values
 
-    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'u_MVP'), false, mvp);
-    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Center.high'), centerHigh);
-    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Center.low'), centerLow);
-    gl.uniform3fv(gl.getUniformLocation(this.program, 'u_Camera'), this.camera);
-    gl.uniform4fv(gl.getUniformLocation(this.program, 'u_Tint'), [...this.tint, 1.0]);
-    gl.uniform2fv(gl.getUniformLocation(this.program, 'u_Offset'), [0.0, 0.0]);
-    gl.uniform2iv(gl.getUniformLocation(this.program, 'u_Count'), this.count);
-    gl.uniform1f(gl.getUniformLocation(this.program, 'u_CellHalfSize'), 0.35);
-    gl.uniform1f(gl.getUniformLocation(this.program, 'u_Zoom'), this.zoom);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'u_MVP'), false, mvp);
+    gl.uniform3fv(gl.getUniformLocation(program, 'u_Center.high'), centerHigh);
+    gl.uniform3fv(gl.getUniformLocation(program, 'u_Center.low'), centerLow);
+    gl.uniform3fv(gl.getUniformLocation(program, 'u_Camera'), this.camera);
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_Tint'), [...this.tint, 1.0]);
+    gl.uniform2fv(gl.getUniformLocation(program, 'u_Offset'), [0.0, 0.0]);
+    gl.uniform2iv(gl.getUniformLocation(program, 'u_Count'), this.count);
+    gl.uniform1f(gl.getUniformLocation(program, 'u_CellHalfSize'), 0.35);
+    gl.uniform1f(gl.getUniformLocation(program, 'u_Zoom'), this.zoom);
   }
 
   public setPositions(gl: WebGLContext, values: glm.vec3[]) {
     const name = "a_Pos";
-    const index = gl.getAttribLocation(this.program, name);
+    const index = gl.getAttribLocation(this.getProgram(), name);
     const array = values.flat() as number[];
 
     this.setAttributeData(
@@ -101,7 +102,7 @@ export class GridShader extends Shader {
 
   public setUVs(gl: WebGLContext, values: glm.vec2[]) {
     const name = "a_UV";
-    const index = gl.getAttribLocation(this.program, name);
+    const index = gl.getAttribLocation(this.getProgram(), name);
     const array = values.flat() as number[];
 
     this.setAttributeData(
@@ -121,7 +122,7 @@ export class GridShader extends Shader {
 
   public setGrid(gl: WebGLContext, grid: GridData) {
     const name = "u_Values";
-    const index = gl.getUniformLocation(this.program, name)!;
+    const index = gl.getUniformLocation(this.getProgram(), name)!;
 
     // Normalize values into byte range (0-255)
     const array = (grid.values.flat() as number[])

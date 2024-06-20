@@ -21,8 +21,7 @@ export type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
 export abstract class Shader {
   private vertexSource?: string;
   private fragmentSource?: string;
-
-  protected program: WebGLProgram;
+  private program: WebGLProgram | null;
 
   protected attributes: {
     [index: string]: {
@@ -39,7 +38,7 @@ export abstract class Shader {
   };
 
   constructor(vertexSource: string, fragmentSource: string) {
-    this.program = {};
+    this.program = null;
     this.attributes = {};
     this.textures = {};
     this.vertexSource = vertexSource;
@@ -49,12 +48,27 @@ export abstract class Shader {
   /**
    * Creates and initializes this shader program.
    *
-   * This method should be called only once.
+   * This method should be called before {@link getProgram} or {@link bind}
    *
+   * @returns Immediately when called multiple times.
    * @param gl - The WebGL context.
    */
   public init(gl: WebGLContext) {
+    if (this.program) return;
     this.program = this.createProgram(gl);
+  }
+
+  /**
+   * Returns current shader program.
+   *
+   * Available after calling {@link init}
+   */
+  public getProgram(): WebGLProgram {
+    if (!this.program) {
+      throw new Error("Shader not initialized");
+    }
+
+    return this.program;
   }
 
   /**
@@ -67,7 +81,7 @@ export abstract class Shader {
    */
   public bind(gl: WebGLContext) {
     // Bind shader program
-    gl.useProgram(this.program);
+    gl.useProgram(this.getProgram());
 
     // Bind all attributes and their buffers
     for (const name in this.attributes) {
