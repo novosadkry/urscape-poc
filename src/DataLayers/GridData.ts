@@ -1,47 +1,17 @@
 import { parse } from 'csv-parse';
+import { getMinMax } from './DataUtils';
+import { PatchData, PatchDataSection, PatchMetadata } from './PatchData';
 
-enum GridDataSection {
-  Metadata,
-  Categories,
-  Values
-}
-
-export type GridBounds = {
-  north: number;
-  east: number;
-  south: number;
-  west: number;
-}
-
-export type GridMetadata = {
-  [key: string]: string | number | boolean;
-};
-
-export type GridData = {
-  metadata: GridMetadata;
-  bounds: GridBounds;
+export interface GridData extends PatchData {
   values: number[];
   mask: number[];
   countX: number,
   countY: number,
   minValue: number;
   maxValue: number;
-};
-
-function getMinMax(array: number[]): [number, number] {
-  let len = array.length;
-  let max = -Infinity;
-  let min = +Infinity;
-
-  while (len--) {
-      max = array[len] > max ? array[len] : max;
-      min = array[len] < min ? array[len] : min;
-  }
-
-  return [min, max];
 }
 
-export function parseCSV(input: string): Promise<GridData> {
+export function parseData(input: string): Promise<GridData> {
   return new Promise((resolve, reject) => {
     parse(input, {
       delimiter: ',',
@@ -53,35 +23,35 @@ export function parseCSV(input: string): Promise<GridData> {
         return reject(err);
       }
 
-      const metadata: GridMetadata = {};
+      const metadata: PatchMetadata = {};
       const values: number[] = [];
       const mask: number[] = [];
-      let section: GridDataSection | null = null;
+      let section: PatchDataSection | null = null;
 
       for (const record of records) {
         const [key, value] = record;
 
         if (key == 'METADATA') {
           section = value == 'TRUE'
-            ? GridDataSection.Metadata
+            ? PatchDataSection.Metadata
             : section;
 
           continue;
         }
         else if (key == 'CATEGORIES') {
           section = value == 'TRUE'
-            ? GridDataSection.Categories
+            ? PatchDataSection.Categories
             : section;
 
           continue;
         }
         else if (key == 'VALUE' && value == 'MASK') {
-          section = GridDataSection.Values
+          section = PatchDataSection.Values
           continue;
         }
 
         switch (section) {
-          case GridDataSection.Metadata:
+          case PatchDataSection.Metadata:
             if (!isNaN(Number(value))) {
               metadata[key] = Number(value);
             } else if (value.trim().toUpperCase() === 'TRUE' || value.trim().toUpperCase() === 'FALSE') {
@@ -90,9 +60,9 @@ export function parseCSV(input: string): Promise<GridData> {
               metadata[key] = value;
             }
             break;
-          case GridDataSection.Categories:
+          case PatchDataSection.Categories:
             throw new Error("Not implemented");
-          case GridDataSection.Values:
+          case PatchDataSection.Values:
             values.push(parseInt(key));
             mask.push(parseInt(value));
             break;

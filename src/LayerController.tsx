@@ -1,11 +1,7 @@
 import { useEffect, Dispatch, SetStateAction } from 'react';
 import { Layer } from './DataLayers/Layer';
-import { parseCSV } from './DataLayers/GridData';
 import { GridLayer } from './DataLayers/GridLayer';
-
-import topologyCSV from './assets/data/topology.csv?raw';
-import densityCSV from './assets/data/density.csv?raw';
-import soilCSV from './assets/data/soil_D_0.csv?raw';
+import { parseGrid } from './DataLayers/GridPatch';
 
 type Props = {
   layers: Layer[]
@@ -16,22 +12,22 @@ export default function LayerController(props: Props) {
   const { setLayers } = props;
 
   useEffect(() => {
-    async function parseGrid() {
-      const gridData = [
-        await parseCSV(topologyCSV),
-        await parseCSV(densityCSV),
-        await parseCSV(soilCSV),
+    async function loadLayers() {
+      const patches = [
+        await parseGrid("Topography_D_Insert Location@0_YYYYMMDD_grid.csv"),
+        await parseGrid("density_D_Insert Location@0_YYYYMMDD_grid.csv"),
+        await parseGrid("soil_C_Insert Location@0_YYYYMMDD_grid.csv"),
       ];
 
       const layers = [];
-      layers.push(new GridLayer("topology", gridData[0], [1.0, 0.0, 0.0]));
-      layers.push(new GridLayer("density", gridData[1], [0.0, 1.0, 0.0]));
-      layers.push(new GridLayer("soil", gridData[2], [0.0, 0.0, 1.0]));
+      layers.push(new GridLayer(patches[0].header.name, patches[0].data, [1.0, 0.0, 0.0]));
+      layers.push(new GridLayer(patches[1].header.name, patches[1].data, [0.0, 1.0, 0.0]));
+      layers.push(new GridLayer(patches[2].header.name, patches[2].data, [0.0, 0.0, 1.0]));
 
       setLayers(layers);
     }
 
-    parseGrid()
+    loadLayers()
   }, [setLayers]);
 
   return (

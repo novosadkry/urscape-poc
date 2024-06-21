@@ -1,18 +1,8 @@
 import { GridData } from '../GridData';
 import { Shader, WebGLContext } from './Shader';
+import { encodeFloatToDouble } from './ShaderUtils';
 import GridProgram from './GridProgram';
 import * as glm from 'gl-matrix';
-
-// TODO: Move to Shader Utils?
-function encodeFloatToDouble(value: number) {
-  const result = new Float32Array(2);
-  result[0] = value;
-
-  const delta = value - result[0];
-  result[1] = delta;
-
-  return result;
-}
 
 export class GridShader extends Shader {
   public mvp: glm.ReadonlyMat4;
