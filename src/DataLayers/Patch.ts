@@ -15,7 +15,7 @@ export type PatchHeader = {
 
 export interface Patch {
   header: PatchHeader;
-  data: PatchData;
+  data?: PatchData;
 }
 
 export function parseHeader(filename: string): PatchHeader | null {

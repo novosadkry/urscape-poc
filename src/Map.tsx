@@ -8,11 +8,11 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import mapStyle from './assets/style.json';
 
 type Props = {
-  layers: MapLayer[]
+  mapLayers: MapLayer[]
 };
 
 export default function Map(props: Props) {
-  const { layers } = props;
+  const { mapLayers } = props;
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<maplibre.Map | null>(null)
 
@@ -37,15 +37,28 @@ export default function Map(props: Props) {
 
   // Add map layers
   useEffect(() => {
-    layers.forEach(layer => {
-      if (layer.active && !map?.getLayer(layer.id)) {
-        map?.addLayer(layer);
-      }
-      else if (!layer.active && map?.getLayer(layer.id)) {
-        map?.removeLayer(layer.id);
-      }
-    });
-  }, [map, layers]);
+    if (!map) return;
+
+    const layers = map.getLayersOrder()
+      .map(id => map.getLayer(id)!)
+      .filter(layer => layer.type == 'custom');
+
+    // Remove layers which are no longer in mapLayers state
+    for (const layer of layers) {
+      const match = mapLayers.find(x => x.id == layer.id);
+      if (match) continue;
+
+      map.removeLayer(layer.id);
+    }
+
+    // Add layers which were added to mapLayers state
+    for (const mapLayer of mapLayers) {
+      const match = map.getLayer(mapLayer.id);
+      if (match) continue;
+
+      map.addLayer(mapLayer);
+    }
+  }, [map, mapLayers]);
 
   return (
     <div className="map-wrap">

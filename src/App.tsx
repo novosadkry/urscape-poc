@@ -2,22 +2,25 @@ import { useState } from 'react';
 import Map from './Map';
 import Gui from './gui';
 import { MapLayer } from './Map/MapLayer';
+import { DataLayer } from './DataLayers/DataLayer';
 import LayerController from './LayerController';
 
 import './App.css';
 
 function App() {
-  const [layers, setLayers] = useState<MapLayer[]>([]);
+  const [dataLayers, setDataLayers] = useState<DataLayer[]>([]);
+  const [mapLayers, setMapLayers] = useState<MapLayer[]>([]);
 
   return (
     <>
-      <Map layers={layers} />
+      <Map mapLayers={mapLayers} />
       <LayerController
-        layers={layers}
-        setLayers={setLayers} />
+        dataLayers={dataLayers}
+        setDataLayers={setDataLayers}
+        setMapLayers={setMapLayers} />
       <Gui
-        layers={layers}
-        setLayers={setLayers} />
+        dataLayers={dataLayers}
+        setDataLayers={setDataLayers} />
     </>
   )
 }
