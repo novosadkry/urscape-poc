@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import maplibre, { StyleSpecification } from 'maplibre-gl';
-import { Layer } from './DataLayers/Layer';
+import { MapLayer } from './Map/MapLayer';
 
 import './Map.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import mapStyle from './assets/style.json';
 
 type Props = {
-  layers: Layer[]
+  layers: MapLayer[]
 };
 
 export default function Map(props: Props) {

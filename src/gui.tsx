@@ -1,17 +1,17 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import './gui.css';
-import { Layer } from './DataLayers/Layer';
+import { MapLayer } from './Map/MapLayer';
 
 type Props = {
-  layers: Layer[]
-  setLayers: Dispatch<SetStateAction<Layer[]>>
+  layers: MapLayer[]
+  setLayers: Dispatch<SetStateAction<MapLayer[]>>
 };
 
 export default function Gui(props: Props) {
   const { layers, setLayers } = props;
- const locations: Layer[] = [];
-  const onLayerClicked = (layer: Layer) => {
+ const locations: MapLayer[] = [];
+  const onLayerClicked = (layer: MapLayer) => {
 
     // React compares references instead of full equality,
     // we need to copy values to a new array to cause rerender
@@ -19,7 +19,7 @@ export default function Gui(props: Props) {
     setLayers([...layers]);
   }
 
-  const addButton = (layer: Layer) => {
+  const addButton = (layer: MapLayer) => {
     return (
       <button className={"layer-button " + (layer.active ? "active" : "")} key={layer.id} onClick={() => onLayerClicked(layer)}>
         {layer.id.charAt(0).toUpperCase() + layer.id.slice(1)}

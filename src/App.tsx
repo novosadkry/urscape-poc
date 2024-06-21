@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import Map from './Map';
 import Gui from './gui';
-import { Layer } from './DataLayers/Layer';
+import { MapLayer } from './Map/MapLayer';
 import LayerController from './LayerController';
 
 import './App.css';
 
 function App() {
-  const [layers, setLayers] = useState<Layer[]>([]);
+  const [layers, setLayers] = useState<MapLayer[]>([]);
 
   return (
     <>

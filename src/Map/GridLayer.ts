@@ -1,11 +1,11 @@
-import { Layer } from './Layer';
-import { GridData } from './GridData';
+import { MapLayer } from './MapLayer';
+import { GridData } from '../DataLayers/GridData';
 import { WebGLContext } from './Shaders/Shader';
 import { GridShader } from './Shaders/GridShader';
 import { MercatorCoordinate } from 'maplibre-gl';
 import * as glm from 'gl-matrix';
 
-export class GridLayer implements Layer {
+export class GridLayer implements MapLayer {
   public readonly id: string;
   public readonly type = "custom";
   public readonly renderingMode = "2d";

@@ -1,11 +1,11 @@
 import { useEffect, Dispatch, SetStateAction } from 'react';
-import { Layer } from './DataLayers/Layer';
-import { GridLayer } from './DataLayers/GridLayer';
+import { MapLayer } from './Map/MapLayer';
+import { GridLayer } from './Map/GridLayer';
 import { parseGrid } from './DataLayers/GridPatch';
 
 type Props = {
-  layers: Layer[]
-  setLayers: Dispatch<SetStateAction<Layer[]>>
+  layers: MapLayer[]
+  setLayers: Dispatch<SetStateAction<MapLayer[]>>
 };
 
 export default function LayerController(props: Props) {
