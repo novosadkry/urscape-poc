@@ -1,9 +1,12 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import './gui.css';
+import { Site } from './DataLayers/Site';
 import { DataLayer } from './DataLayers/DataLayer';
 
 type Props = {
+  sites: Site[]
+  setSites: Dispatch<SetStateAction<Site[]>>
   dataLayers: DataLayer[]
   setDataLayers: Dispatch<SetStateAction<DataLayer[]>>
 };
