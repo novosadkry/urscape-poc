@@ -31,6 +31,10 @@ export default function DataLoader(props: Props) {
     setDataLayers(layers)
   }
 
+  parser.onerror = (event) => {
+    console.error("GridParser Error: " + event);
+  };
+
   useEffect(() => {
     const global = new Site();
 
