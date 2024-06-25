@@ -2,24 +2,15 @@ import { useEffect, useMemo, Dispatch, SetStateAction } from 'react';
 import { Site } from './DataLayers/Site';
 import { DataLayer } from './DataLayers/DataLayer';
 import { GridPatch } from './DataLayers/GridPatch';
-import { PatchConstants } from './DataLayers/Patch';
+import { patchRequest } from './DataLayers/PatchRequest';
 
-import Loader from './assets/workers/Loader.ts?worker';
-import { PatchRequest } from './assets/workers/Loader';
+import GridParser from './assets/workers/GridParser.ts?worker';
 
 type Props = {
   dataLayers: DataLayer[]
   setSites: Dispatch<SetStateAction<Site[]>>
   setDataLayers: Dispatch<SetStateAction<DataLayer[]>>
 };
-
-function patchRequest(path: string): PatchRequest {
-  const base = window.location.origin + import.meta.env.BASE_URL;
-  const filename = path.substring(path.lastIndexOf('/') + 1);
-  const url = new URL(PatchConstants.PATCH_PATH + path, base).href;
-
-  return { url, filename };
-}
 
 export default function DataLoader(props: Props) {
   const {
@@ -28,8 +19,9 @@ export default function DataLoader(props: Props) {
     setDataLayers,
   } = props;
 
-  const loader = useMemo(() => new Loader(), []);
-  loader.onmessage = (e: MessageEvent<GridPatch>) => {
+  const parser = useMemo(() => new GridParser(), []);
+
+  parser.onmessage = (e: MessageEvent<GridPatch>) => {
     const layers = dataLayers.slice();
     const patch = e.data;
 
@@ -46,15 +38,15 @@ export default function DataLoader(props: Props) {
     const density = new DataLayer("Density");
 
     for (let i = 0; i < 32; i++) {
-      loader.postMessage(patchRequest(`global/Cropland_B_global@${i}_YYYYMMDD_grid.csv`));
-      loader.postMessage(patchRequest(`global/Density_B_global@${i}_YYYYMMDD_grid.csv`));
+      parser.postMessage(patchRequest(`global/Cropland_B_global@${i}_YYYYMMDD_grid.csv`));
+      parser.postMessage(patchRequest(`global/Density_B_global@${i}_YYYYMMDD_grid.csv`));
     }
 
     global.layers = [cropland, density];
 
     setSites([global]);
     setDataLayers(global.layers);
-  }, [loader, setSites, setDataLayers]);
+  }, [parser, setSites, setDataLayers]);
 
   return (
     <>

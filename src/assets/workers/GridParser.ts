@@ -1,14 +1,10 @@
 import { parse } from "papaparse";
+import { getMinMax } from "../../DataLayers/DataUtils";
 import { GridData } from "../../DataLayers/GridData";
 import { GridPatch } from "../../DataLayers/GridPatch";
+import { PatchRequest } from "../../DataLayers/PatchRequest";
 import { PatchHeader, PatchLevel } from "../../DataLayers/Patch";
 import { PatchDataSection, PatchMetadata } from "../../DataLayers/PatchData";
-import { getMinMax } from "../../DataLayers/DataUtils";
-
-export type PatchRequest = {
-  url: string
-  filename: string
-};
 
 export async function parseGrid(request: PatchRequest): Promise<GridPatch> {
   const { url, filename } = request;
