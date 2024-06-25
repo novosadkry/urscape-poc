@@ -22,8 +22,8 @@ export default function Map(props: Props) {
       container: mapRef.current as HTMLElement,
       // projection: 'globe',
       style: mapStyle as StyleSpecification,
-      center: [107.641, -6.866],
-      zoom: 13,
+      center: [0, 0],
+      zoom: 0,
       antialias: true
     });
 
