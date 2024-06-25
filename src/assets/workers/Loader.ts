@@ -1,4 +1,4 @@
-import { parse } from "csv-parse";
+import { parse } from "papaparse";
 import { GridData } from "../../DataLayers/GridData";
 import { GridPatch } from "../../DataLayers/GridPatch";
 import { PatchHeader, PatchLevel } from "../../DataLayers/Patch";
@@ -13,14 +13,10 @@ export type PatchRequest = {
 export async function parseGrid(request: PatchRequest): Promise<GridPatch> {
   const { url, filename } = request;
 
-  const response = await fetch(url);
-  if (!response.ok) throw Error(response.statusText);
-
   const header = parseHeader(filename);
   if (!header) throw Error("Invalid filename format");
 
-  const blob = await response.text();
-  const data = await parseCSV(blob);
+  const data = await parseCSV(url);
 
   return { header, data };
 }
@@ -47,45 +43,30 @@ export function parseHeader(filename: string): PatchHeader | null {
   }
 }
 
-export async function parseCSV(input: string): Promise<GridData> {
-  const parser = parse({
-    encoding: "utf16le",
-    delimiter: ",",
-    trim: true,
-    columns: false,
-    skip_empty_lines: true,
-    relax_column_count: true
-  });
-
-  // Get rid of UTF-16 BOM bytes
-  parser.write(input.slice(2));
-  parser.end();
-
+export async function parseCSV(url: string): Promise<GridData> {
   const metadata: PatchMetadata = {};
   const values: number[] = [];
   const mask: number[] = [];
   let section: PatchDataSection | null = null;
 
-  for await (const record of parser) {
-    const [key, value] = record;
+  function parseRow(row: [string, string]) {
+    const [key, value] = row;
 
     if (key == "METADATA") {
       section = value == "TRUE"
         ? PatchDataSection.Metadata
         : section;
-
-      continue;
+      return;
     }
     else if (key == "CATEGORIES") {
       section = value == "TRUE"
         ? PatchDataSection.Categories
         : section;
-
-      continue;
+      return;
     }
     else if (key == "VALUE" && value == "MASK") {
       section = PatchDataSection.Values
-      continue;
+      return;
     }
 
     switch (section) {
@@ -107,22 +88,35 @@ export async function parseCSV(input: string): Promise<GridData> {
     }
   }
 
-  const [min, max] = getMinMax(values);
-
-  return {
-    metadata,
-    bounds: {
-      north: metadata["North"] as number,
-      east: metadata["East"] as number,
-      south: metadata["South"] as number,
-      west: metadata["West"] as number,
-    },
-    values, mask,
-    countX: metadata["Count X"] as number,
-    countY: metadata["Count Y"] as number,
-    minValue: min,
-    maxValue: max,
-  };
+  return new Promise((resolve, reject) => {
+    parse(url, {
+      download: true,
+      encoding: "utf16le",
+      step: function(row) {
+        parseRow(row.data as [string, string]);
+      },
+      complete: function() {
+        const [min, max] = getMinMax(values);
+        resolve({
+          metadata,
+          bounds: {
+            north: metadata["North"] as number,
+            east: metadata["East"] as number,
+            south: metadata["South"] as number,
+            west: metadata["West"] as number,
+          },
+          values, mask,
+          countX: metadata["Count X"] as number,
+          countY: metadata["Count Y"] as number,
+          minValue: min,
+          maxValue: max,
+        });
+      },
+      error: function(error) {
+        reject(error);
+      }
+    });
+  })
 }
 
 self.onmessage = async (e: MessageEvent<PatchRequest>) => {
