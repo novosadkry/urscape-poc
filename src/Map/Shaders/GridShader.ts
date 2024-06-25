@@ -1,4 +1,4 @@
-import { GridData } from '../GridData';
+import { GridData } from '../../DataLayers/GridData';
 import { Shader, WebGLContext } from './Shader';
 import { encodeFloatToDouble } from './ShaderUtils';
 import GridProgram from './GridProgram';
