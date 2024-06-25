@@ -51,7 +51,7 @@ export class GridLayer implements MapLayer {
       ],
     );
 
-    this.shader.setGrid(gl, this.grid);
+    this.shader.setValues(gl, this.grid);
   }
 
   public onRemove(_map: maplibregl.Map, gl: WebGLContext): void {

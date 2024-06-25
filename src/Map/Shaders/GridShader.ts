@@ -108,14 +108,15 @@ export class GridShader extends Shader {
     );
   }
 
-  public setGrid(gl: WebGLContext, grid: GridData) {
+  public setValues(gl: WebGLContext, grid: GridData) {
     const name = "u_Values";
     const index = gl.getUniformLocation(this.getProgram(), name)!;
 
     // Normalize values into byte range (0-255)
+    // and apply gamma correction
     const array = (grid.values.flat() as number[])
       .map(x => (x - grid.minValue) / (grid.maxValue - grid.minValue))
-      .map(x => Math.floor(x * 255));
+      .map(x => Math.floor(Math.pow(x, 0.25) * 255)); // TODO: Calculate correct gamma value
 
     this.setTextureData(
       gl,
