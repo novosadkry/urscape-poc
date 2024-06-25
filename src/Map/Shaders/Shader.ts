@@ -70,6 +70,27 @@ export abstract class Shader {
   }
 
   /**
+   * Performs shader clean-up.
+   *
+   * Releases attributes and texture buffers from memory.
+   */
+  public delete(gl: WebGLContext) {
+    // Delete attribute buffers
+    for (const index in this.attributes) {
+      const value = this.attributes[index];
+      gl.deleteBuffer(value.buffer);
+      delete this.attributes[index];
+    }
+
+    // Delete textures
+    for (const index in this.textures) {
+      const value = this.textures[index];
+      gl.deleteTexture(value.texture);
+      delete this.textures[index];
+    }
+  }
+
+  /**
    * Binds this shader program to a given WebGL context
    * with all uniforms, textures and vertex attribute data.
    *

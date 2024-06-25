@@ -54,6 +54,10 @@ export class GridLayer implements MapLayer {
     this.shader.setGrid(gl, this.grid);
   }
 
+  public onRemove(_map: maplibregl.Map, gl: WebGLContext): void {
+    this.shader.delete(gl);
+  }
+
   public render(gl: WebGLContext, mvp: glm.mat4) {
     const centerMercator = MercatorCoordinate.fromLngLat(this.map!.transform.center);
     const center: glm.vec3 = [centerMercator.x, centerMercator.y, centerMercator.z];
