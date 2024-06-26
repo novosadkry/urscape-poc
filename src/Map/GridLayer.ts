@@ -33,6 +33,21 @@ export class GridLayer implements MapLayer {
     const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
     const p3 = MercatorCoordinate.fromLngLat({ lng: east, lat: north });
 
+    const min = Math.log(Math.tan((90 + south) * (Math.PI / 360.0))) * (1.0 / Math.PI);
+    const max = Math.log(Math.tan((90 + north) * (Math.PI / 360.0))) * (1.0 / Math.PI);
+    const invLatRange = (1.0 / (north - south));
+
+    const lats: number[] = [];
+    const countY = this.grid.countY + 1;
+		const projLatInterval = (max - min) / (countY - 1);
+    const rad2deg = 180 / Math.PI;
+
+    for (let i = 0; i < countY; i++) {
+      const projLat = min + i * projLatInterval;
+      const lat = (2 * Math.atan(Math.exp(projLat * Math.PI)) - Math.PI * 0.5) * rad2deg;
+      lats[i] = 1 - (lat - south) * invLatRange;
+    }
+
     this.shader.setPositions(gl,
       [
         [p0.x, p0.y, 0.0],
@@ -44,14 +59,15 @@ export class GridLayer implements MapLayer {
 
     this.shader.setUVs(gl,
       [
-        [0.0, 1.0],
-        [1.0, 1.0],
         [0.0, 0.0],
         [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 1.0],
       ],
     );
 
     this.shader.setValues(gl, this.grid);
+    this.shader.setProjection(gl, lats);
   }
 
   public onRemove(_map: maplibregl.Map, gl: WebGLContext): void {

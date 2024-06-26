@@ -127,6 +127,30 @@ export class GridShader extends Shader {
         width: grid.countX,
         height: grid.countY,
         format: gl.LUMINANCE,
+        filter: gl.NEAREST,
+        wrap: gl.CLAMP_TO_EDGE
+      },
+    );
+  }
+
+  public setProjection(gl: WebGLContext, values: number[]) {
+    const name = "u_Projection";
+    const index = gl.getUniformLocation(this.getProgram(), name)!;
+
+    // Normalize values into byte range (0-255)
+    const array = values.map(x => Math.floor(x * 255));
+
+    this.setTextureData(
+      gl,
+      array,
+      {
+        index: index,
+        name: name,
+        width: array.length,
+        height: 1,
+        format: gl.LUMINANCE,
+        filter: gl.LINEAR,
+        wrap: gl.CLAMP_TO_EDGE
       },
     );
   }

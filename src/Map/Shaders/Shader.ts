@@ -16,6 +16,8 @@ type TextureParams = {
   format: number,
   width: number,
   height: number,
+  filter: number,
+  wrap: number,
 };
 
 export type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
@@ -190,10 +192,10 @@ export abstract class Shader {
     );
 
     // Set texture parameters for filtering and wrapping
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, params.filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, params.filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, params.wrap);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, params.wrap);
 
     // Store the texture and its parameters
     this.textures[params.name] = { texture, params };
