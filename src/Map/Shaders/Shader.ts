@@ -10,17 +10,22 @@ type AttributeParams = {
   offset: number,
 };
 
+type TextureFormat = [
+  format: number,
+  internalformat: number
+];
+
 type TextureParams = {
   name: string,
   index: WebGLUniformLocation,
-  format: number,
+  format: TextureFormat,
   width: number,
   height: number,
   filter: number,
   wrap: number,
 };
 
-export type WebGLContext = WebGLRenderingContext | WebGL2RenderingContext;
+export type WebGLContext = WebGL2RenderingContext;
 
 /**
  * Stores vertex attributes, textures and uniforms for a given shader program.
@@ -165,7 +170,7 @@ export abstract class Shader {
    * @param params - An object containing texture parameters.
    * @throws Throws an error if the texture object cannot be created.
    */
-  protected setTextureData(gl: WebGLRenderingContext, values: number[], params: TextureParams) {
+  protected setTextureData(gl: WebGLContext, values: number[], params: TextureParams) {
     // Retrieve the texture from the map or create a new one if it doesn't exist
     const texture = this.textures[params.name]?.texture ?? gl.createTexture();
     if (!texture) throw new Error("An error occurred while creating a texture object");
@@ -176,19 +181,23 @@ export abstract class Shader {
       throw new Error("Unsupported texture size (exceeds " + MAX_TEXTURE_SIZE + ")");
     }
 
+    // Load floating-point texture extensions
+    gl.getExtension("OES_texture_float");
+    gl.getExtension("OES_texture_float_linear");
+
     // Upload the data to a texture image
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texImage2D(
       gl.TEXTURE_2D,
-      0,                      // Mipmap level
-      params.format,          // Internal format
-      params.width,           // Width of the texture
-      params.height,          // Height of the texture
-      0,                      // Border width (always zero)
-      params.format,          // Format of the pixel data (same as internal)
-      gl.UNSIGNED_BYTE,       // Type of the pixel data
-      new Uint8Array(values)  // Pixel data
+      0,                        // Mipmap level
+      params.format[1],         // Internal format
+      params.width,             // Width of the texture
+      params.height,            // Height of the texture
+      0,                        // Border width (always zero)
+      params.format[0],         // Format of the pixel data
+      gl.FLOAT,                 // Type of the pixel data
+      new Float32Array(values)  // Pixel data
     );
 
     // Set texture parameters for filtering and wrapping

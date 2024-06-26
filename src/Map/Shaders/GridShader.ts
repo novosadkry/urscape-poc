@@ -112,11 +112,10 @@ export class GridShader extends Shader {
     const name = "u_Values";
     const index = gl.getUniformLocation(this.getProgram(), name)!;
 
-    // Normalize values into byte range (0-255)
-    // and apply gamma correction
+    // Normalize values and apply gamma correction
     const array = (grid.values.flat() as number[])
       .map(x => (x - grid.minValue) / (grid.maxValue - grid.minValue))
-      .map(x => Math.floor(Math.pow(x, 0.25) * 255)); // TODO: Calculate correct gamma value
+      .map(x => Math.pow(x, 0.25)); // TODO: Calculate correct gamma value
 
     this.setTextureData(
       gl,
@@ -126,7 +125,7 @@ export class GridShader extends Shader {
         name: name,
         width: grid.countX,
         height: grid.countY,
-        format: gl.LUMINANCE,
+        format: [gl.RED, gl.R32F],
         filter: gl.NEAREST,
         wrap: gl.CLAMP_TO_EDGE
       },
@@ -137,18 +136,15 @@ export class GridShader extends Shader {
     const name = "u_Projection";
     const index = gl.getUniformLocation(this.getProgram(), name)!;
 
-    // Normalize values into byte range (0-255)
-    const array = values.map(x => Math.floor(x * 255));
-
     this.setTextureData(
       gl,
-      array,
+      values,
       {
         index: index,
         name: name,
-        width: array.length,
+        width: values.length,
         height: 1,
-        format: gl.LUMINANCE,
+        format: [gl.RED, gl.R32F],
         filter: gl.LINEAR,
         wrap: gl.CLAMP_TO_EDGE
       },

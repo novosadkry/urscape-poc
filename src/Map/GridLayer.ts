@@ -3,6 +3,7 @@ import { GridData } from '../DataLayers/GridData';
 import { WebGLContext } from './Shaders/Shader';
 import { GridShader } from './Shaders/GridShader';
 import { MercatorCoordinate } from 'maplibre-gl';
+import * as utils from './MapUtils';
 import * as glm from 'gl-matrix';
 
 export class GridLayer implements MapLayer {
@@ -33,19 +34,18 @@ export class GridLayer implements MapLayer {
     const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
     const p3 = MercatorCoordinate.fromLngLat({ lng: east, lat: north });
 
-    const min = Math.log(Math.tan((90 + south) * (Math.PI / 360.0))) * (1.0 / Math.PI);
-    const max = Math.log(Math.tan((90 + north) * (Math.PI / 360.0))) * (1.0 / Math.PI);
+    const min = utils.latToNormalizedMercator(south);
+    const max = utils.latToNormalizedMercator(north);
     const invLatRange = (1.0 / (north - south));
 
     const lats: number[] = [];
     const countY = this.grid.countY + 1;
-		const projLatInterval = (max - min) / (countY - 1);
-    const rad2deg = 180 / Math.PI;
+    const projLatInterval = (max - min) / (countY - 1);
 
     for (let i = 0; i < countY; i++) {
       const projLat = min + i * projLatInterval;
-      const lat = (2 * Math.atan(Math.exp(projLat * Math.PI)) - Math.PI * 0.5) * rad2deg;
-      lats[i] = 1 - (lat - south) * invLatRange;
+      const lat = (2 * Math.atan(Math.exp(projLat * Math.PI)) - Math.PI * 0.5) * utils.Rad2Deg;
+      lats[i] = utils.clamp01(1.0 - (lat - south) * invLatRange);
     }
 
     this.shader.setPositions(gl,
@@ -74,7 +74,10 @@ export class GridLayer implements MapLayer {
     this.shader.delete(gl);
   }
 
-  public render(gl: WebGLContext, mvp: glm.mat4) {
+  public render(gl: WebGLRenderingContext | WebGL2RenderingContext, mvp: glm.mat4) {
+    if (!(gl instanceof WebGL2RenderingContext))
+      throw Error("Unsupported WebGL version");
+
     const centerMercator = MercatorCoordinate.fromLngLat(this.map!.transform.center);
     const center: glm.vec3 = [centerMercator.x, centerMercator.y, centerMercator.z];
 
