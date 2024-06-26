@@ -78,8 +78,8 @@ export async function parseCSV(url: string): Promise<GridData> {
       case PatchDataSection.Categories:
         throw new Error("Not implemented");
       case PatchDataSection.Values:
-        values.push(parseInt(key));
-        mask.push(parseInt(value));
+        values.push(parseFloat(key));
+        mask.push(parseFloat(value));
         break;
     }
   }
@@ -87,7 +87,7 @@ export async function parseCSV(url: string): Promise<GridData> {
   return new Promise((resolve, reject) => {
     parse(url, {
       download: true,
-      encoding: "utf16le",
+      skipEmptyLines: true,
       step: function(row) {
         parseRow(row.data as [string, string]);
       },
