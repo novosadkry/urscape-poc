@@ -39,24 +39,25 @@ export default function Map(props: Props) {
   useEffect(() => {
     if (!map) return;
 
+    const oldIds = new Set(map.getLayersOrder());
+    const newIds = new Set(mapLayers.map(layer => layer.id));
+
     const layers = map.getLayersOrder()
       .map(id => map.getLayer(id)!)
-      .filter(layer => layer.type == 'custom');
+      .filter(layer => layer.type == "custom");
 
     // Remove layers which are no longer in mapLayers state
     for (const layer of layers) {
-      const match = mapLayers.find(x => x.id == layer.id);
-      if (match) continue;
-
-      map.removeLayer(layer.id);
+      if (!newIds.has(layer.id)) {
+        map.removeLayer(layer.id);
+      }
     }
 
     // Add layers which were added to mapLayers state
     for (const mapLayer of mapLayers) {
-      const match = map.getLayer(mapLayer.id);
-      if (match) continue;
-
-      map.addLayer(mapLayer);
+      if (!oldIds.has(mapLayer.id)) {
+        map.addLayer(mapLayer);
+      }
     }
   }, [map, mapLayers]);
 

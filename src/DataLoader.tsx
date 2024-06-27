@@ -1,4 +1,8 @@
-import { useEffect, useMemo, Dispatch, SetStateAction } from 'react';
+import {
+  useEffect, useState, useCallback,
+  Dispatch, SetStateAction,
+} from 'react';
+
 import { Site } from './DataLayers/Site';
 import { DataLayer } from './DataLayers/DataLayer';
 import { GridPatch } from './DataLayers/GridPatch';
@@ -7,35 +11,49 @@ import { patchRequest } from './DataLayers/PatchRequest';
 import GridParser from './assets/workers/GridParser.ts?worker';
 
 type Props = {
-  dataLayers: DataLayer[]
   setSites: Dispatch<SetStateAction<Site[]>>
   setDataLayers: Dispatch<SetStateAction<DataLayer[]>>
 };
 
 export default function DataLoader(props: Props) {
   const {
-    dataLayers,
     setSites,
     setDataLayers,
   } = props;
 
-  const parser = useMemo(() => new GridParser(), []);
+  const [parser, setParser] = useState<Worker | null>(null);
+  const pushResult = useCallback((patch: GridPatch) => {
+    setDataLayers(prevLayers => {
+      const layers = prevLayers.map(layer => {
+        if (layer.name === patch.header.name) {
+          return {
+            ...layer,
+            patches: [...layer.patches, patch],
+          };
+        }
+        return layer;
+      });
+      return layers;
+    });
+  }, [setDataLayers]);
 
-  parser.onmessage = (e: MessageEvent<GridPatch>) => {
-    const layers = dataLayers.slice();
-    const patch = e.data;
-
-    const layer = layers.find(x => x.name == patch.header.name);
-    layer?.patches.push(patch);
-
-    setDataLayers(layers)
-  }
-
-  parser.onerror = (event) => {
-    console.error("GridParser Error: " + event);
-  };
-
+  // Initialize GridParser web worker
   useEffect(() => {
+    const parser = new GridParser();
+    parser.onmessage = (e: MessageEvent<GridPatch>) => pushResult(e.data);
+    parser.onerror = (event) => console.error("GridParser Error: " + event.message);
+
+    setParser(parser);
+
+    return () => {
+      parser.terminate();
+    }
+  }, [pushResult, setParser])
+
+  // Enqueue requests for global data on first render
+  useEffect(() => {
+    if (!parser) return;
+
     const global = new Site();
 
     const cropland = new DataLayer("Cropland");

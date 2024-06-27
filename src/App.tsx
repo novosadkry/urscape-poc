@@ -19,7 +19,6 @@ function App() {
     <>
       <Map mapLayers={mapLayers} />
       <DataLoader
-        dataLayers={dataLayers}
         setSites={setSites}
         setDataLayers={setDataLayers} />
       <LayerController
