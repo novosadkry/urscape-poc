@@ -76,7 +76,7 @@ export async function parseCSV(url: string): Promise<GridData> {
         }
         break;
       case PatchDataSection.Categories:
-        throw new Error("Not implemented");
+        throw Error("Not implemented");
       case PatchDataSection.Values:
         values.push(parseFloat(key));
         mask.push(parseFloat(value));

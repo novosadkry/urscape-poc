@@ -28,7 +28,7 @@ function isWebGLSupported() {
 
 if (!isWebGLSupported()) {
   alert('Your browser does not support WebGL2 or floating-point textures.');
-  throw new Error('Unsupported WebGL version');
+  throw Error('Unsupported WebGL version');
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -69,7 +69,7 @@ export abstract class Shader {
     this.program.init(gl);
 
     const vao = gl.createVertexArray();
-    if (!vao) throw new Error("An error occured while creating a vertex array object");
+    if (!vao) throw Error("An error occured while creating a vertex array object");
 
     this.vao = vao;
   }
@@ -156,7 +156,7 @@ export abstract class Shader {
   protected setAttributeData(gl: WebGLContext, values: number[], params: AttributeParams) {
     // Retrieve the buffer from the map or create a new one if it doesn't exist.
     const buffer = this.attributes[params.name]?.buffer ?? gl.createBuffer();
-    if (!buffer) throw new Error("An error occured while creating a buffer object");
+    if (!buffer) throw Error("An error occured while creating a buffer object");
 
     // Bind vertex array object
     gl.bindVertexArray(this.vao);
@@ -198,12 +198,12 @@ export abstract class Shader {
   protected setTextureData(gl: WebGLContext, values: number[], params: TextureParams) {
     // Retrieve the texture from the map or create a new one if it doesn't exist
     const texture = this.textures[params.name]?.texture ?? gl.createTexture();
-    if (!texture) throw new Error("An error occurred while creating a texture object");
+    if (!texture) throw Error("An error occurred while creating a texture object");
 
     // Check for maximum supported texture resolution
     const MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     if (params.width > MAX_TEXTURE_SIZE || params.height > MAX_TEXTURE_SIZE) {
-      throw new Error("Unsupported texture size (exceeds " + MAX_TEXTURE_SIZE + ")");
+      throw Error("Unsupported texture size (exceeds " + MAX_TEXTURE_SIZE + ")");
     }
 
     // Load floating-point texture extensions
