@@ -34,6 +34,7 @@ export type WebGLContext = WebGL2RenderingContext;
  */
 export abstract class Shader {
   private program: Program;
+  private vao: WebGLVertexArrayObject;
 
   protected attributes: {
     [index: string]: {
@@ -51,6 +52,7 @@ export abstract class Shader {
 
   constructor(program: Program) {
     this.program = program;
+    this.vao = {};
     this.attributes = {};
     this.textures = {};
   }
@@ -65,6 +67,11 @@ export abstract class Shader {
    */
   public init(gl: WebGLContext) {
     this.program.init(gl);
+
+    const vao = gl.createVertexArray();
+    if (!vao) throw new Error("An error occured while creating a vertex array object");
+
+    this.vao = vao;
   }
 
   /**
@@ -82,6 +89,9 @@ export abstract class Shader {
    * Releases attributes and texture buffers from memory.
    */
   public delete(gl: WebGLContext) {
+    // Delete vertex array object
+    gl.deleteVertexArray(this.vao);
+
     // Delete attribute buffers
     for (const index in this.attributes) {
       const value = this.attributes[index];
@@ -110,21 +120,7 @@ export abstract class Shader {
     gl.useProgram(this.getProgram());
 
     // Bind all attributes and their buffers
-    for (const name in this.attributes) {
-      const buffer = this.attributes[name].buffer;
-      const params = this.attributes[name].params;
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.enableVertexAttribArray(params.index);
-      gl.vertexAttribPointer(
-        params.index,
-        params.size,
-        params.type,
-        params.normalized,
-        params.stride,
-        params.offset
-      );
-    }
+    gl.bindVertexArray(this.vao);
 
     // Bind all textures
     Object.values(this.textures).forEach((value, i) => {
@@ -135,6 +131,18 @@ export abstract class Shader {
       gl.activeTexture(gl.TEXTURE0 + i);
       gl.bindTexture(gl.TEXTURE_2D, texture);
     });
+  }
+
+  /**
+   * Unbinds this shader program.
+   *
+   * This method should be called after every draw call.
+   *
+   * @param gl - The WebGL context.
+   */
+  public unbind(gl: WebGLContext) {
+    // Unbind vertex array object
+    gl.bindVertexArray(null);
   }
 
   /**
@@ -150,6 +158,9 @@ export abstract class Shader {
     const buffer = this.attributes[params.name]?.buffer ?? gl.createBuffer();
     if (!buffer) throw new Error("An error occured while creating a buffer object");
 
+    // Bind vertex array object
+    gl.bindVertexArray(this.vao);
+
     // Upload the data to a vertex buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(
@@ -157,6 +168,20 @@ export abstract class Shader {
       new Float32Array(values),
       gl.STATIC_DRAW
     );
+
+    // Define and bind attribute to VAO
+    gl.enableVertexAttribArray(params.index);
+    gl.vertexAttribPointer(
+      params.index,
+      params.size,
+      params.type,
+      params.normalized,
+      params.stride,
+      params.offset
+    );
+
+    // Unbind vertex array object
+    gl.bindVertexArray(null);
 
     // Store the buffer and its parameters
     this.attributes[params.name] = { buffer, params };

@@ -102,6 +102,7 @@ export class GridLayer implements MapLayer {
       this.grid.countX,
       this.grid.countY,
     ];
+
     this.shader.bind(gl);
 
     // Additive color blending
@@ -109,5 +110,7 @@ export class GridLayer implements MapLayer {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    this.shader.unbind(gl);
   }
 }
