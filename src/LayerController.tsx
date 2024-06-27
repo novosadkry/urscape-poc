@@ -17,9 +17,15 @@ export default function LayerController(props: Props) {
 
   useEffect(() => {
     const mapLayers = [];
+    const activeDataLayers = dataLayers
+      .filter(layer => layer.active);
 
-    for (const dataLayer of dataLayers) {
-      if (!dataLayer.active) continue;
+    let offsetIndex = 0;
+    const offsetCount = 1.0 / activeDataLayers.length;
+    const offsetRadians = (2.0 * Math.PI) * offsetCount;
+    const offsetDistance = 0.15 * (1.0 - offsetCount);
+
+    for (const dataLayer of activeDataLayers) {
       const patches = dataLayer.patches as GridPatch[];
 
       for (const patch of patches) {
@@ -32,8 +38,17 @@ export default function LayerController(props: Props) {
         }
 
         const id = header.name + header.patch;
-        mapLayers.push(new GridLayer(id, dataLayer, data));
+        const layer = new GridLayer(id, dataLayer, data);
+
+        layer.offset = [
+          offsetDistance * Math.cos(offsetIndex * offsetRadians),
+          offsetDistance * Math.sin(offsetIndex * offsetRadians)
+        ]
+
+        mapLayers.push(layer);
       }
+
+      offsetIndex++;
     }
 
     setMapLayers(mapLayers);

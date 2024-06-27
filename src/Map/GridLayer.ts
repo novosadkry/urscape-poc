@@ -12,6 +12,7 @@ export class GridLayer implements MapLayer {
   public readonly type = "custom";
   public readonly renderingMode = "2d";
   public active: boolean = true;
+  public offset: glm.vec2 = [0, 0];
 
   private layer: DataLayer;
   private grid: GridData;
@@ -107,6 +108,7 @@ export class GridLayer implements MapLayer {
     this.shader.zoom = zoom;
     this.shader.center = center;
     this.shader.camera = camera;
+    this.shader.offset = this.offset;
     this.shader.tint = this.layer.tint.vec();
     this.shader.count = [
       this.grid.countX,
