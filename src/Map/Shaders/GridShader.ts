@@ -1,4 +1,3 @@
-import { GridData } from '../../DataLayers/GridData';
 import { Shader, WebGLContext } from './Shader';
 import { encodeFloatToDouble } from './ShaderUtils';
 import GridProgram from './GridProgram';
@@ -108,23 +107,18 @@ export class GridShader extends Shader {
     );
   }
 
-  public setValues(gl: WebGLContext, grid: GridData) {
+  public setValues(gl: WebGLContext, values: number[], countX: number, countY: number) {
     const name = "u_Values";
     const index = gl.getUniformLocation(this.getProgram(), name)!;
 
-    // Normalize values and apply gamma correction
-    const array = (grid.values.flat() as number[])
-      .map(x => (x - grid.minValue) / (grid.maxValue - grid.minValue))
-      .map(x => Math.pow(x, 0.25)); // TODO: Calculate correct gamma value
-
     this.setTextureData(
       gl,
-      array,
+      values,
       {
         index: index,
         name: name,
-        width: grid.countX,
-        height: grid.countY,
+        width: countX,
+        height: countY,
         format: [gl.RED, gl.R32F],
         filter: gl.NEAREST,
         wrap: gl.CLAMP_TO_EDGE

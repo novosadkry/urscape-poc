@@ -29,6 +29,7 @@ export default function DataLoader(props: Props) {
           return {
             ...layer,
             patches: [...layer.patches, patch],
+            getMinMaxValue: DataLayer.prototype.getMinMaxValue
           };
         }
         return layer;

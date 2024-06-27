@@ -1,4 +1,5 @@
 import { MapLayer } from './MapLayer';
+import { DataLayer } from '../DataLayers/DataLayer';
 import { GridData } from '../DataLayers/GridData';
 import { WebGLContext } from './Shaders/Shader';
 import { GridShader } from './Shaders/GridShader';
@@ -12,13 +13,15 @@ export class GridLayer implements MapLayer {
   public readonly renderingMode = "2d";
   public active: boolean = true;
 
+  private layer: DataLayer;
   private grid: GridData;
   private tint: glm.vec3;
   private shader: GridShader;
   private map?: maplibregl.Map;
 
-  constructor(id: string, grid: GridData, tint: glm.vec3) {
+  constructor(id: string, layer: DataLayer, grid: GridData, tint: glm.vec3) {
     this.id = id;
+    this.layer = layer;
     this.grid = grid;
     this.tint = tint;
     this.shader = new GridShader();
@@ -34,19 +37,28 @@ export class GridLayer implements MapLayer {
     const p2 = MercatorCoordinate.fromLngLat({ lng: west, lat: north });
     const p3 = MercatorCoordinate.fromLngLat({ lng: east, lat: north });
 
-    const min = utils.latToNormalizedMercator(south);
-    const max = utils.latToNormalizedMercator(north);
-    const invLatRange = (1.0 / (north - south));
+    function calculateProjection(countY: number) {
+      const min = utils.latToNormalizedMercator(south);
+      const max = utils.latToNormalizedMercator(north);
+      const invLatRange = (1.0 / (north - south));
 
-    const lats: number[] = [];
-    const countY = this.grid.countY + 1;
-    const projLatInterval = (max - min) / (countY - 1);
+      const lats: number[] = [];
+      const projLatInterval = (max - min) / (countY - 1);
 
-    for (let i = 0; i < countY; i++) {
-      const projLat = min + i * projLatInterval;
-      const lat = (2 * Math.atan(Math.exp(projLat * Math.PI)) - Math.PI * 0.5) * utils.Rad2Deg;
-      lats[i] = utils.clamp01(1.0 - (lat - south) * invLatRange);
+      for (let i = 0; i < countY; i++) {
+        const projLat = min + i * projLatInterval;
+        const lat = (2 * Math.atan(Math.exp(projLat * Math.PI)) - Math.PI * 0.5) * utils.Rad2Deg;
+        lats[i] = utils.clamp01(1.0 - (lat - south) * invLatRange);
+      }
+
+      return lats;
     }
+
+    // Normalize values and apply gamma correction
+    const [min, max] = this.layer.getMinMaxValue();
+    const values = (this.grid.values.flat() as number[])
+      .map(x => (x - min) / (max - min))
+      .map(x => Math.pow(x, 0.25)); // TODO: Calculate correct gamma value
 
     this.shader.setPositions(gl,
       [
@@ -66,8 +78,8 @@ export class GridLayer implements MapLayer {
       ],
     );
 
-    this.shader.setValues(gl, this.grid);
-    this.shader.setProjection(gl, lats);
+    this.shader.setValues(gl, values, this.grid.countX, this.grid.countY);
+    this.shader.setProjection(gl, calculateProjection(this.grid.countY + 1));
   }
 
   public onRemove(_map: maplibregl.Map, gl: WebGLContext): void {

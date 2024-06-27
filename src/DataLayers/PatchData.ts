@@ -18,4 +18,6 @@ export enum PatchDataSection {
 export interface PatchData {
   metadata: PatchMetadata;
   bounds: PatchBounds;
+  minValue: number;
+  maxValue: number;
 }

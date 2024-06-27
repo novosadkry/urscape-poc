@@ -32,7 +32,7 @@ export default function LayerController(props: Props) {
         }
 
         const id = header.name + header.patch;
-        mapLayers.push(new GridLayer(id, data, [1.0, 0.0, 0.0]));
+        mapLayers.push(new GridLayer(id, dataLayer, data, [1.0, 0.0, 0.0]));
       }
     }
 
