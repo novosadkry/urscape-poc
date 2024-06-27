@@ -1,3 +1,4 @@
+import * as BSON from "bson";
 import { parse } from "papaparse";
 import { getMinMax } from "../../DataLayers/DataUtils";
 import { GridData } from "../../DataLayers/GridData";
@@ -37,6 +38,32 @@ export function parseHeader(filename: string): PatchHeader | null {
     filename,
     date,
   }
+}
+
+export async function parseBSON(url: string): Promise<GridData> {
+  const response = await fetch(url);
+  if (!response.ok) throw Error(response.statusText);
+
+  const documents: BSON.Document[] = [];
+
+  const data = await response.arrayBuffer();
+  BSON.deserializeStream(data, 0, 1, documents, 0, {});
+
+  return {
+    metadata: {},
+    bounds: {
+      north: 0,
+      east: 0,
+      south: 0,
+      west: 0,
+    },
+    values: [],
+    mask: [],
+    countX: 0,
+    countY: 0,
+    minValue: 0,
+    maxValue: 0,
+  };
 }
 
 export async function parseCSV(url: string): Promise<GridData> {
