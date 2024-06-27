@@ -7,7 +7,7 @@ export class GridShader extends Shader {
   public mvp: glm.ReadonlyMat4;
   public camera: glm.ReadonlyVec3;
   public center: glm.ReadonlyVec3;
-  public tint: glm.ReadonlyVec3;
+  public tint: glm.ReadonlyVec4;
   public count: glm.ReadonlyVec2;
   public zoom: number;
 
@@ -17,7 +17,7 @@ export class GridShader extends Shader {
     this.mvp = glm.mat4.create();
     this.camera = glm.vec3.create();
     this.center = glm.vec3.create();
-    this.tint = glm.vec3.create();
+    this.tint = glm.vec4.create();
     this.count = glm.vec2.create();
     this.zoom = 0;
   }
@@ -60,7 +60,7 @@ export class GridShader extends Shader {
     gl.uniform3fv(gl.getUniformLocation(program, 'u_Center.high'), centerHigh);
     gl.uniform3fv(gl.getUniformLocation(program, 'u_Center.low'), centerLow);
     gl.uniform3fv(gl.getUniformLocation(program, 'u_Camera'), this.camera);
-    gl.uniform4fv(gl.getUniformLocation(program, 'u_Tint'), [...this.tint, 1.0]);
+    gl.uniform4fv(gl.getUniformLocation(program, 'u_Tint'), this.tint);
     gl.uniform2fv(gl.getUniformLocation(program, 'u_Offset'), [0.0, 0.0]);
     gl.uniform2iv(gl.getUniformLocation(program, 'u_Count'), this.count);
     gl.uniform1f(gl.getUniformLocation(program, 'u_CellHalfSize'), 0.35);

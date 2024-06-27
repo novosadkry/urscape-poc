@@ -15,15 +15,13 @@ export class GridLayer implements MapLayer {
 
   private layer: DataLayer;
   private grid: GridData;
-  private tint: glm.vec3;
   private shader: GridShader;
   private map?: maplibregl.Map;
 
-  constructor(id: string, layer: DataLayer, grid: GridData, tint: glm.vec3) {
+  constructor(id: string, layer: DataLayer, grid: GridData) {
     this.id = id;
     this.layer = layer;
     this.grid = grid;
-    this.tint = tint;
     this.shader = new GridShader();
   }
 
@@ -109,7 +107,7 @@ export class GridLayer implements MapLayer {
     this.shader.zoom = zoom;
     this.shader.center = center;
     this.shader.camera = camera;
-    this.shader.tint = this.tint;
+    this.shader.tint = this.layer.tint.vec();
     this.shader.count = [
       this.grid.countX,
       this.grid.countY,

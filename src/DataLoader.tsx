@@ -3,6 +3,7 @@ import {
   Dispatch, SetStateAction,
 } from 'react';
 
+import { Color } from './Map/Color';
 import { Site } from './DataLayers/Site';
 import { DataLayer } from './DataLayers/DataLayer';
 import { GridPatch } from './DataLayers/GridPatch';
@@ -57,15 +58,15 @@ export default function DataLoader(props: Props) {
 
     const global = new Site();
 
-    const cropland = new DataLayer("Cropland");
-    const density = new DataLayer("Density");
+    const density = new DataLayer("Density", Color.red);
+    const cropland = new DataLayer("Cropland", Color.green);
 
     for (let i = 0; i < 32; i++) {
-      parser.postMessage(patchRequest(`global/Cropland_B_global@${i}_YYYYMMDD_grid.csv`));
       parser.postMessage(patchRequest(`global/Density_B_global@${i}_YYYYMMDD_grid.csv`));
+      parser.postMessage(patchRequest(`global/Cropland_B_global@${i}_YYYYMMDD_grid.csv`));
     }
 
-    global.layers = [cropland, density];
+    global.layers = [density, cropland];
 
     setSites([global]);
     setDataLayers(global.layers);

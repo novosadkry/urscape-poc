@@ -1,9 +1,18 @@
 import { Patch } from "./Patch";
+import { Color } from "../Map/Color";
 
 export class DataLayer {
   public name: string;
   public active: boolean;
   public patches: Patch[];
+  public tint: Color;
+
+  constructor(name: string, tint: Color) {
+    this.name = name;
+    this.active = false;
+    this.patches = [];
+    this.tint = tint;
+  }
 
   public getMinMaxValue(): [number, number] {
     let min = +Infinity;
@@ -16,11 +25,5 @@ export class DataLayer {
     }
 
     return [min, max];
-  }
-
-  constructor(name: string) {
-    this.name = name;
-    this.active = false;
-    this.patches = [];
   }
 }
