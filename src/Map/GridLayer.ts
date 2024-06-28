@@ -26,6 +26,10 @@ export class GridLayer implements MapLayer {
     this.shader = new GridShader();
   }
 
+  public getDataLayer(): DataLayer {
+    return this.layer;
+  }
+
   public onAdd(map: maplibregl.Map, gl: WebGLContext) {
     this.map = map;
     this.shader.init(gl);

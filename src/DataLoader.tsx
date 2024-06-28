@@ -25,16 +25,9 @@ export default function DataLoader(props: Props) {
   const [parser, setParser] = useState<Worker | null>(null);
   const pushResult = useCallback((patch: GridPatch) => {
     setDataLayers(prevLayers => {
-      const layers = prevLayers.map(layer => {
-        if (layer.name === patch.header.name) {
-          return {
-            ...layer,
-            patches: [...layer.patches, patch],
-            getMinMaxValue: DataLayer.prototype.getMinMaxValue
-          };
-        }
-        return layer;
-      });
+      const layers = [...prevLayers];
+      const layer = layers.find(x => x.name == patch.header.name);
+      layer?.patches.push(patch);
       return layers;
     });
   }, [setDataLayers]);

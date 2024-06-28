@@ -16,7 +16,14 @@ export default function LayerController(props: Props) {
   } = props;
 
   useEffect(() => {
-    const mapLayers = [];
+    // Remove inactive map layers
+    setMapLayers(prev => {
+      return prev.filter((mapLayer) => {
+        const dataLayer = mapLayer.getDataLayer();
+        return dataLayer.active;
+      })
+    });
+
     const activeDataLayers = dataLayers
       .filter(layer => layer.active);
 
@@ -26,6 +33,7 @@ export default function LayerController(props: Props) {
     const offsetDistance = 0.15 * (1.0 - offsetCount);
 
     for (const dataLayer of activeDataLayers) {
+      const index = offsetIndex++; // copy for closure
       const patches = dataLayer.patches as GridPatch[];
 
       for (const patch of patches) {
@@ -37,21 +45,25 @@ export default function LayerController(props: Props) {
           continue;
         }
 
-        const id = header.name + header.patch;
-        const layer = new GridLayer(id, dataLayer, data);
+        setMapLayers((prev) => {
+          const layers = [...prev];
+          const id = header.name + header.patch;
+          let layer = layers.find(x => x.id == id) as GridLayer;
 
-        layer.offset = [
-          offsetDistance * Math.cos(offsetIndex * offsetRadians),
-          offsetDistance * Math.sin(offsetIndex * offsetRadians)
-        ]
+          if (!layer) {
+            layer = new GridLayer(id, dataLayer, data);
+            layers.push(layer);
+          }
 
-        mapLayers.push(layer);
+          layer.offset = [
+            offsetDistance * Math.cos(index * offsetRadians),
+            offsetDistance * Math.sin(index * offsetRadians)
+          ];
+
+          return layers;
+        });
       }
-
-      offsetIndex++;
     }
-
-    setMapLayers(mapLayers);
   }, [dataLayers, setMapLayers]);
 
   return (
