@@ -1,25 +1,16 @@
-import { Dispatch, SetStateAction } from 'react';
+import { DataLayer } from './DataLayers/DataLayer';
+import { toggleLayer } from './MapSlice';
+import { useAppDispatch, useAppSelector } from './ReduxHooks';
 
 import './gui.css';
-import { Site } from './DataLayers/Site';
-import { DataLayer } from './DataLayers/DataLayer';
 
-type Props = {
-  sites: Site[]
-  setSites: Dispatch<SetStateAction<Site[]>>
-  dataLayers: DataLayer[]
-  setDataLayers: Dispatch<SetStateAction<DataLayer[]>>
-};
+export default function Gui() {
+  const layers = useAppSelector(state => state.map.layers);
+  const dispatch = useAppDispatch();
 
-export default function Gui(props: Props) {
-  const { dataLayers: layers, setDataLayers: setLayers } = props;
   const locations: DataLayer[] = [];
   const onLayerClicked = (layer: DataLayer) => {
-
-    // React compares references instead of full equality,
-    // we need to copy values to a new array to cause rerender
-    layer.active = !layer.active;
-    setLayers([...layers]);
+    dispatch(toggleLayer(layer));
   }
 
   const addButton = (layer: DataLayer) => {
@@ -35,7 +26,7 @@ export default function Gui(props: Props) {
         <div className="left-layers">
           <div className="header"> {"DataLayers"} </div>
           <div className="container">
-            { layers.map((layer) => addButton(layer)) }
+            { Object.values(layers).map((layer) => addButton(layer)) }
           </div>
           <div className="left-locations">
             <div className="header"> {"Locations"} </div>

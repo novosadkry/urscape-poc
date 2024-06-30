@@ -1,30 +1,21 @@
-import { useEffect, Dispatch, SetStateAction } from 'react';
-import { MapLayer } from './Map/MapLayer';
+import { useEffect } from 'react';
+import { useAppSelector } from './ReduxHooks';
+import { Map } from 'maplibre-gl';
 import { GridLayer } from './Map/GridLayer';
 import { GridPatch } from './DataLayers/GridPatch';
-import { DataLayer } from './DataLayers/DataLayer';
 
 type Props = {
-  dataLayers: DataLayer[]
-  setMapLayers: Dispatch<SetStateAction<MapLayer[]>>
+  map: Map | null
 };
 
 export default function LayerController(props: Props) {
-  const {
-    dataLayers,
-    setMapLayers
-  } = props;
+  const { map } = props;
+  const layers = useAppSelector(state => state.map.layers);
 
   useEffect(() => {
-    // Remove inactive map layers
-    setMapLayers(prev => {
-      return prev.filter((mapLayer) => {
-        const dataLayer = mapLayer.getDataLayer();
-        return dataLayer.active;
-      })
-    });
+    if (!map) return;
 
-    const activeDataLayers = dataLayers
+    const activeDataLayers = Object.values(layers)
       .filter(layer => layer.active);
 
     let offsetIndex = 0;
@@ -45,26 +36,21 @@ export default function LayerController(props: Props) {
           continue;
         }
 
-        setMapLayers((prev) => {
-          const layers = [...prev];
-          const id = header.name + header.patch;
-          let layer = layers.find(x => x.id == id) as GridLayer;
+        const id = header.name + header.patch;
+        let layer = map.getLayer(id) as unknown as GridLayer;
 
-          if (!layer) {
-            layer = new GridLayer(id, dataLayer, data);
-            layers.push(layer);
-          }
+        if (!layer) {
+          layer = new GridLayer(id, dataLayer, data);
+          map.addLayer(layer);
+        }
 
-          layer.offset = [
-            offsetDistance * Math.cos(index * offsetRadians),
-            offsetDistance * Math.sin(index * offsetRadians)
-          ];
-
-          return layers;
-        });
+        layer.offset = [
+          offsetDistance * Math.cos(index * offsetRadians),
+          offsetDistance * Math.sin(index * offsetRadians)
+        ];
       }
     }
-  }, [dataLayers, setMapLayers]);
+  }, [map, layers]);
 
   return (
     <>

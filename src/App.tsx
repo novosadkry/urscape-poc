@@ -1,35 +1,27 @@
 import { useState } from 'react';
-import { Site } from './DataLayers/Site';
-import { MapLayer } from './Map/MapLayer';
-import { DataLayer } from './DataLayers/DataLayer';
+import { store } from './ReduxStore';
+import { Provider } from 'react-redux';
+import { Map } from 'maplibre-gl';
 
-import Map from './Map';
 import Gui from './gui';
+import MapView from './MapView';
 import DataLoader from './DataLoader';
 import LayerController from './LayerController';
 
 import './App.css';
 
 function App() {
-  const [sites, setSites] = useState<Site[]>([]);
-  const [dataLayers, setDataLayers] = useState<DataLayer[]>([]);
-  const [mapLayers, setMapLayers] = useState<MapLayer[]>([]);
+  const [map, setMap] = useState<Map | null>(null);
 
   return (
-    <>
-      <Map mapLayers={mapLayers} />
-      <DataLoader
-        setSites={setSites}
-        setDataLayers={setDataLayers} />
+    <Provider store={store}>
+      <MapView
+        setMap={setMap} />
+      <DataLoader />
       <LayerController
-        dataLayers={dataLayers}
-        setMapLayers={setMapLayers} />
-      <Gui
-        sites={sites}
-        setSites={setSites}
-        dataLayers={dataLayers}
-        setDataLayers={setDataLayers} />
-    </>
+        map={map} />
+      <Gui />
+    </Provider>
   )
 }
 

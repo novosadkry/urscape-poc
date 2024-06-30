@@ -1,5 +1,5 @@
 import { MapLayer } from './MapLayer';
-import { DataLayer } from '../DataLayers/DataLayer';
+import { DataLayer, getMinMaxValue } from '../DataLayers/DataLayer';
 import { GridData } from '../DataLayers/GridData';
 import { WebGLContext } from './Shaders/Shader';
 import { GridShader } from './Shaders/GridShader';
@@ -24,10 +24,6 @@ export class GridLayer implements MapLayer {
     this.layer = layer;
     this.grid = grid;
     this.shader = new GridShader();
-  }
-
-  public getDataLayer(): DataLayer {
-    return this.layer;
   }
 
   public onAdd(map: maplibregl.Map, gl: WebGLContext) {
@@ -58,7 +54,7 @@ export class GridLayer implements MapLayer {
     }
 
     // Normalize values and apply gamma correction
-    const [min, max] = this.layer.getMinMaxValue();
+    const [min, max] = getMinMaxValue(this.layer);
     const values = (this.grid.values.flat() as number[])
       .map(x => (x - min) / (max - min))
       .map(x => Math.pow(x, 0.25)); // TODO: Calculate correct gamma value
@@ -113,7 +109,7 @@ export class GridLayer implements MapLayer {
     this.shader.center = center;
     this.shader.camera = camera;
     this.shader.offset = this.offset;
-    this.shader.tint = this.layer.tint.vec();
+    this.shader.tint = this.layer.tint;
     this.shader.count = [
       this.grid.countX,
       this.grid.countY,

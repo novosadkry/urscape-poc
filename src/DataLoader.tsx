@@ -1,36 +1,19 @@
-import {
-  useEffect, useState, useCallback,
-  Dispatch, SetStateAction,
-} from 'react';
-
-import { Color } from './Map/Color';
-import { Site } from './DataLayers/Site';
+import { useEffect, useState, useCallback } from 'react';
+import { addLayer, addPatch } from './MapSlice';
 import { DataLayer } from './DataLayers/DataLayer';
 import { GridPatch } from './DataLayers/GridPatch';
 import { patchRequest } from './DataLayers/PatchRequest';
+import { useAppDispatch } from './ReduxHooks';
 
 import GridParser from './assets/workers/GridParser.ts?worker';
 
-type Props = {
-  setSites: Dispatch<SetStateAction<Site[]>>
-  setDataLayers: Dispatch<SetStateAction<DataLayer[]>>
-};
-
-export default function DataLoader(props: Props) {
-  const {
-    setSites,
-    setDataLayers,
-  } = props;
+export default function DataLoader() {
+  const dispatch = useAppDispatch();
 
   const [parser, setParser] = useState<Worker | null>(null);
   const pushResult = useCallback((patch: GridPatch) => {
-    setDataLayers(prevLayers => {
-      const layers = [...prevLayers];
-      const layer = layers.find(x => x.name == patch.header.name);
-      layer?.patches.push(patch);
-      return layers;
-    });
-  }, [setDataLayers]);
+    dispatch(addPatch(patch));
+  }, [dispatch]);
 
   // Initialize GridParser web worker
   useEffect(() => {
@@ -49,21 +32,17 @@ export default function DataLoader(props: Props) {
   useEffect(() => {
     if (!parser) return;
 
-    const global = new Site();
-
-    const density = new DataLayer("Density", Color.red);
-    const cropland = new DataLayer("Cropland", Color.green);
+    const density: DataLayer = { id: "Density", name: "Density", tint: [1.0, 0.0, 0.0, 1.0], active: false, patches: [] };
+    const cropland: DataLayer = { id: "Cropland", name: "Cropland", tint: [0.0, 1.0, 0.0, 1.0], active: false, patches: [] };
 
     for (let i = 0; i < 32; i++) {
       parser.postMessage(patchRequest(`global/Density_B_global@${i}_YYYYMMDD_grid.csv`));
       parser.postMessage(patchRequest(`global/Cropland_B_global@${i}_YYYYMMDD_grid.csv`));
     }
 
-    global.layers = [density, cropland];
-
-    setSites([global]);
-    setDataLayers(global.layers);
-  }, [parser, setSites, setDataLayers]);
+    dispatch(addLayer(density));
+    dispatch(addLayer(cropland));
+  }, [dispatch, parser]);
 
   return (
     <>

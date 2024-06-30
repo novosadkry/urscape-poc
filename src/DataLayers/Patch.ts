@@ -12,7 +12,7 @@ export type PatchHeader = {
   site: string;
   patch: number;
   filename: string;
-  date: Date;
+  date: number;
 }
 
 export interface Patch {

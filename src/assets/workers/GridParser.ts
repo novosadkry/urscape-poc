@@ -28,7 +28,7 @@ export function parseHeader(filename: string): PatchHeader | null {
   const level = values[2] as PatchLevel;
   const site = values[3];
   const patch = parseInt(values[4]);
-  const date = new Date(); // TODO
+  const date = Date.now(); // TODO
 
   return {
     level,
